@@ -40,28 +40,15 @@
 #define __MAIN_H_
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
-#include "fatfs.h"
+#include "stm32l0xx_hal.h"
 #include "cmsis_os.h"
-#include "usb_device.h"
 #include "bsp.h"
 #include "platform.h"
-#include "bluenrg_interface.h"
-#include "hci.h"
-#include "bluenrg_utils.h"
-#include "bluenrg_service.h"
 #include "freertostask.h"
-#include "bluenrg_sensor_service.h"
-#include "bluenrg_remotecontrol_service.h"
 #include "global_typedef.h"
 
 
-extern volatile AxesRaw_t g_Axes_data;
-extern uint16_t g_LedFlashTime;
-
 void MX_GPIO_Init(void);
-void MX_SDIO_SD_Init(void);
-
 
 
 #endif /* __MAIN_H_ */

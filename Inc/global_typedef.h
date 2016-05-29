@@ -35,8 +35,8 @@
 #define __GLOBALTYPEDEF_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx.h"
-#include "stm32f4xx_hal.h"
+#include "stm32l0xx.h"
+#include "stm32l0xx_hal.h"
 
 
 /** 

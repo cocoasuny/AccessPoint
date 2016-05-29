@@ -18,7 +18,7 @@
 ******************************************************************************/
 #include <hal_types.h>
 #include "bluenrglist.h"
-#include "stm32f4xx_hal.h"
+#include "stm32l0xx_hal.h"
 
 /******************************************************************************
  * Function Definitions 

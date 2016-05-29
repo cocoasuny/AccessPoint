@@ -40,37 +40,8 @@
 #define __BLUENRG_INTERFACE_H_
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
+#include "stm32l0xx_hal.h"
 
-extern SPI_HandleTypeDef SpiHandle;
-
-
-void Enable_SPI_IRQ(void);
-void Disable_SPI_IRQ(void);
-void Clear_SPI_IRQ(void);
-void Clear_SPI_EXTI_Flag(void);
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
-
-void BNRG_SPI_Init(void);
-void BlueNRG_RST(void);
-uint8_t BlueNRG_DataPresent(void);
-void    BlueNRG_HW_Bootloader(void);
-int32_t BlueNRG_SPI_Read_All(SPI_HandleTypeDef *hspi,
-                             uint8_t *buffer,
-                             uint8_t buff_size);
-int32_t BlueNRG_SPI_Write(SPI_HandleTypeDef *hspi,
-                          uint8_t* data1,
-                          uint8_t* data2,
-                          uint8_t Nb_bytes1,
-                          uint8_t Nb_bytes2);
-void Hal_Write_Serial(const void* data1, const void* data2, int32_t n_bytes1,int32_t n_bytes2);                          
-#ifdef OPTIMIZED_SPI
-/* Optimized functions for throughput test */
-/* Used by the server (L0 and F4, not L4) */
-HAL_StatusTypeDef HAL_SPI_TransmitReceive_Opt(SPI_HandleTypeDef *hspi, const uint8_t *pTxData, uint8_t *pRxData, uint8_t Size);
-HAL_StatusTypeDef HAL_SPI_Transmit_Opt(SPI_HandleTypeDef *hspi, const uint8_t *pTxData, uint8_t Size);
-HAL_StatusTypeDef HAL_SPI_Receive_Opt(SPI_HandleTypeDef *hspi, uint8_t *pRxData, uint8_t Size);
-#endif /* OPTIMIZED_SPI */
 
 
 #endif //__BLUENRG_INTERFACE_H_
