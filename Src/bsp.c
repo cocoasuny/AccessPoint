@@ -34,6 +34,7 @@
 #include "bsp.h"
 #include "main.h"
 
+
 /* Private function prototypes -----------------------------------------------*/
 static void MX_GPIO_Init(void);
 static void MX_USART2_Init(void);
@@ -178,6 +179,16 @@ int fputc(int ch, FILE *f)
         return 0;
     }
     return ch;
+}
+
+void BSP_Usart_DataSend(uint8_t *dataToSend , uint8_t length)
+{
+	uint8_t i = 0;
+	
+	for(i=0;i<length;i++)
+	{
+		HAL_StatusTypeDef status = HAL_UART_Transmit(&huart2, (uint8_t *)&dataToSend[i], 1, 0xFFFF);
+	}
 }
 /**
   * @brief  error handler

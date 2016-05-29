@@ -38,7 +38,8 @@
 #include "stm32l0xx.h"
 #include "stm32l0xx_hal.h"
 #include <stdarg.h>			
-#include <stdio.h>			
+#include <stdio.h>	
+#include "main.h"
 
 /* Store Value into a buffer in Little Endian Format */
 #define STORE_LE_16(buf, val)    ( ((buf)[0] =  (uint8_t) (val)    ) , \
@@ -61,7 +62,7 @@ void BSP_LED_On(void );
 void BSP_LED_Off(void);
 void BSP_LED_Toggle(void);
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name);
-
+void BSP_Usart_DataSend(uint8_t *dataToSend , uint8_t length);
 
 #endif /* __bsp_H */
 
