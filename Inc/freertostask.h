@@ -40,8 +40,12 @@
 #include "main.h"
 
 
-void BlueNRGHCITask(void *pvParameters);
+extern xTaskHandle  xHandleLedCtl;
+extern xTaskHandle  xHandleIMUDataUpdatePC;
 
+
+void BlueNRGHCITask(void *pvParameters);
+void IMUDataUpdateToPC(void *pvParameters);
 
 #endif /* __FREERTOSTASK_H */
 

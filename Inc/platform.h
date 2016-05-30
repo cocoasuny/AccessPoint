@@ -57,6 +57,10 @@
 #define Task_BlueNRGHCI_Stack        500    //task stack
 #define Task_BlueNRGHCI_Priority     2      //task priority
 
+/* IMU data update to pc task */
+#define Task_IMUDataUpdatePC_Stack        100    //task stack
+#define Task_IMUDataUpdatePC_Priority     2      //task priority
+
 
 
 #ifdef PRINTFLOG

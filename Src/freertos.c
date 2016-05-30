@@ -34,27 +34,49 @@
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
 #include "task.h"
-
-/* USER CODE BEGIN Includes */     
-
-/* USER CODE END Includes */
+#include "freertostask.h"
 
 /* Variables -----------------------------------------------------------------*/
+xTaskHandle  xHandleLedCtl;
+xTaskHandle  xHandleIMUDataUpdatePC;
 
-/* USER CODE BEGIN Variables */
-
-/* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
 
-/* USER CODE BEGIN FunctionPrototypes */
+/**
+  * @brief  Update the IMU parameters to PC through USART
+  * @param  pvParameters
+  * @retval None
+  */
+void IMUDataUpdateToPC(void *pvParameters)
+{
+	ANO_DT_Send_Version(4,300,100,400,0);     //Send the Version 
+    
+    while(1)
+    {
+		//for test 
+		g_AttitudeInfo.roll += 10;
+		g_AttitudeInfo.pitch += 10;
+		g_AttitudeInfo.yaw +=10;
+		g_AttitudeInfo.altitude +=10;
+		g_AttitudeInfo.fly_mode = 1;
+		g_AttitudeInfo.armed = 1;
+		
+		g_Acc.AXIS_X += 100;
+		g_Acc.AXIS_Y += 100;
+		g_Acc.AXIS_Z += 100;
+		g_Gyro.AXIS_X += 100;
+		g_Gyro.AXIS_Y += 100;
+		g_Gyro.AXIS_Z += 100;
+		g_Mag.AXIS_X += 100;
+		g_Mag.AXIS_Y += 100;
+		g_Mag.AXIS_Z += 100;
+		
+        ANO_DT_Data_Exchange();
+        vTaskDelay(10);     //IMU 参数更新频率
+    }
+}
 
-/* USER CODE END FunctionPrototypes */
 
-/* Hook prototypes */
-
-/* USER CODE BEGIN Application */
-     
-/* USER CODE END Application */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

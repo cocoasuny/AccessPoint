@@ -59,15 +59,20 @@ void ANO_DT_Data_Exchange(void)
 	else if(f.send_status)
 	{
 		f.send_status = 0;
-//		ANO_DT_Send_Status(Roll,Pitch,Yaw,baroAlt,0,fly_ready);
+		ANO_DT_Send_Status( g_AttitudeInfo.roll,
+							g_AttitudeInfo.pitch,
+							g_AttitudeInfo.yaw,
+							g_AttitudeInfo.altitude,
+							g_AttitudeInfo.fly_mode,
+							g_AttitudeInfo.armed);
 	}	
 /////////////////////////////////////////////////////////////////////////////////////
 	else if(f.send_senser)
 	{
 		f.send_senser = 0;
-//		ANO_DT_Send_Senser(mpu6050.Acc.x,mpu6050.Acc.y,mpu6050.Acc.z,
-//						   mpu6050.Gyro.x,mpu6050.Gyro.y,mpu6050.Gyro.z,
-//						   ak8975.Mag_Adc.x,ak8975.Mag_Adc.y,ak8975.Mag_Adc.z,0);
+		ANO_DT_Send_Senser( g_Acc.AXIS_X,g_Acc.AXIS_Y,g_Acc.AXIS_Z,
+							g_Gyro.AXIS_X,g_Gyro.AXIS_Y,g_Gyro.AXIS_Z,
+							g_Mag.AXIS_X,g_Mag.AXIS_Y,g_Mag.AXIS_Z,0);
 	}	
 /////////////////////////////////////////////////////////////////////////////////////
 	else if(f.send_rcdata)

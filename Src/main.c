@@ -38,20 +38,27 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-xTaskHandle  xHandleLedCtl;
+
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void LedCtlTask(void *pvParameters);
 
 /* Private function prototypes -----------------------------------------------*/
+static void AppTaskCreatCheck(TaskHandle_t taskHandle,BaseType_t Status);
 
+/* Global variables ----------------------------------------------------------*/
+AxesRaw_t  g_Acc;         //加速度传感器数据
+AxesRaw_t  g_Gyro;        //陀螺仪传感器数据
+AxesRaw_t  g_Mag;         //地磁传感器数据
+Attitude_t g_AttitudeInfo;  //姿态信息
 
 
 int main(void)
 {
     /* MCU Configuration----------------------------------------------------------*/
-
+	BaseType_t Status;
+	
     /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
     HAL_Init();
 
@@ -64,13 +71,24 @@ int main(void)
     /* Create the Tasks */
 
     /* Led Control Task */
-    xTaskCreate(
-                LedCtlTask,                 //任务函数
-				"LedCtl",                   //任务名称
-                500,                        //stack大小，单位word
-                NULL,                       //任务参数
-                1,                          //任务优先级
-                &xHandleLedCtl);            //任务句柄
+    Status = xTaskCreate(
+						LedCtlTask,                 //任务函数
+						"LedCtl",                   //任务名称
+						50,                        //stack大小，单位word
+						NULL,                       //任务参数
+						1,                          //任务优先级
+						&xHandleLedCtl);            //任务句柄
+	AppTaskCreatCheck(xHandleLedCtl,Status);
+	
+    /* IMU datas Send to PC Task */
+    Status = xTaskCreate(
+						IMUDataUpdateToPC,          		//任务函数
+						"IMUDataUpdate",                    //任务名称
+						100, 		//stack大小，单位word
+						NULL,                       		//任务参数
+						Task_IMUDataUpdatePC_Priority,      //任务优先级
+						&xHandleIMUDataUpdatePC);           //任务句柄		
+	AppTaskCreatCheck(xHandleIMUDataUpdatePC,Status);
                 
     /* Start scheduler */
     vTaskStartScheduler();
@@ -147,6 +165,13 @@ void SystemClock_Config(void)
 	HAL_NVIC_SetPriority(SysTick_IRQn, 3, 0);
 }
 
+static void AppTaskCreatCheck(TaskHandle_t taskHandle,BaseType_t Status)
+{
+	if(Status != pdTRUE)
+	{
+		DLog("Creat Err:%d,file=%s,func=%s,line=%d\r\n",Status,__FILE__,__FUNCTION__,__LINE__); 
+	}
+}
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */

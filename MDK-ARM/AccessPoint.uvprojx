@@ -439,6 +439,11 @@
               <FilePath>..\Inc\platform.h</FilePath>
             </File>
             <File>
+              <FileName>FreeRTOSConfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Inc\FreeRTOSConfig.h</FilePath>
+            </File>
+            <File>
               <FileName>stm32l0xx_hal_conf.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\Inc\stm32l0xx_hal_conf.h</FilePath>

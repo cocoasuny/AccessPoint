@@ -34,7 +34,7 @@
   *
   ******************************************************************************
   */ 
-  
+    
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MAIN_H_
 #define __MAIN_H_
@@ -47,6 +47,13 @@
 #include "freertostask.h"
 #include "global_typedef.h"
 #include "ANO_DT.h"
+#include "freertostask.h"
+
+/* Global  variables declare -------------------------------------------------*/
+extern AxesRaw_t  g_Acc;
+extern AxesRaw_t  g_Gyro;
+extern AxesRaw_t  g_Mag;  
+extern Attitude_t g_AttitudeInfo;  //姿态信息
 
 
 void MX_GPIO_Init(void);

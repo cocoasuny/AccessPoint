@@ -43,12 +43,20 @@
  * @brief Structure containing acceleration value (in mg) of each axis.
  */
 typedef struct {
-  int AXIS_X;
-  int AXIS_Y;
-  int AXIS_Z;
+	uint16_t 	AXIS_X;
+	uint16_t 	AXIS_Y;
+	uint16_t 	AXIS_Z;
 } AxesRaw_t;
 
-
+typedef struct
+{
+	float		roll;
+	float   	pitch;
+	float   	yaw;
+	int32_t 	altitude;
+	uint8_t     fly_mode;
+	uint8_t     armed;       //0:加锁，1：解锁 
+} Attitude_t;
 
 #endif /* __GLOBALTYPEDEF_H */
 

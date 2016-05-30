@@ -38,10 +38,12 @@
 /* Private function prototypes -----------------------------------------------*/
 static void MX_GPIO_Init(void);
 static void MX_USART2_Init(void);
+static void MX_USART1_Init(void);
 
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart1;
 
 /** @defgroup bsp_Private_Variables
  * @{
@@ -57,6 +59,7 @@ void Bsp_Init(void)
 	MX_GPIO_Init();
 	BSP_LED_Init();
 	MX_USART2_Init();
+	MX_USART1_Init();
 	
     DLog("Start...\r\n");
 }    
@@ -80,9 +83,26 @@ void MX_GPIO_Init(void)
 	HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 }
 
-
 /**
-  * @brief  USART2 init function 
+  * @brief  USART1 init function, used for Debug 
+  * @param  None
+  */
+void MX_USART1_Init(void)
+{
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  HAL_UART_Init(&huart1);
+}
+/**
+  * @brief  USART2 init function, used for ANO 
   * @param  None
   */
 void MX_USART2_Init(void)
@@ -172,7 +192,7 @@ int fputc(int ch, FILE *f)
 {
     /* Place your implementation of fputc here */
     /* e.g. write a character to the EVAL_COM1 and Loop until the end of transmission */
-    HAL_StatusTypeDef status = HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
+    HAL_StatusTypeDef status = HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
 
     if (status != HAL_OK) {
         //while (1);
