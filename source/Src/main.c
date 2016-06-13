@@ -80,7 +80,21 @@ int main(void)
     BlueNRG_Init();
 
     /* Create the Tasks */
-
+	tBleStatus ret;
+	
+	ret = aci_gap_start_general_discovery_proc(0x4000, 0x4000, 
+                                                 0x00, /* public address */
+                                                 0x00);
+	#ifdef Debug_BlueNRG_Scan
+	if (ret != BLE_STATUS_SUCCESS)
+	{
+		printf("aci_gap_start_general_discovery_proc() failed: 0x%x\n",ret);
+	}
+	else 
+	{
+		printf("aci_gap_start_general_discovery_proc OK\n");  
+	}
+	#endif
     /* Led Control Task */
     xTaskCreate(
                 LedCtlTask,                 //任务函数

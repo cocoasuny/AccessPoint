@@ -135,7 +135,7 @@ tBleStatus Service_Init(void)
         return BLE_GATT_INIT_FAILED;
     }
 
-    ret = aci_gap_init(GAP_PERIPHERAL_ROLE, 0, 0x07, &service_handle, &dev_name_char_handle, &appearance_char_handle);
+    ret = aci_gap_init(GAP_CENTRAL_ROLE|GAP_PERIPHERAL_ROLE, 0, 0x07, &service_handle, &dev_name_char_handle, &appearance_char_handle);
 
 #ifdef Debug_BlueNRF
     if(ret != BLE_STATUS_SUCCESS)
@@ -393,6 +393,35 @@ void HCI_Event_CB(void *pckt)
 					GAP_ConnectionComplete_CB(cc->peer_bdaddr, cc->handle);
 				}
 				break;
+				case EVT_LE_ADVERTISING_REPORT:
+				{
+					le_advertising_info *pr = (void *)(evt->data+1); /* evt->data[0] is number of reports (On BlueNRG-MS is always 1) */
+
+					/* Add user code for decoding the le_advertising_info event data based on the specific pr->evt_type (ADV_IND, SCAN_RSP, ..)*/
+					/*  le_advertising_info parameters:
+						pr->evt_type: event type (advertising packets types);
+						pr->bdaddr_type: type of the peer address (PUBLIC_ADDR,RANDOM_ADDR);
+						pr->bdaddr: address of the peer device found during scanning;
+						pr->length: length of advertising or scan response data;
+						pr->data_RSSI[]: length advertising or scan response data + RSSI.
+						RSSI is last octect (signed integer).
+					*/
+					#ifdef Debug_BlueNRG_Scan
+						printf("le advertising info:\r\n");
+						printf("Evt type:0x%x\r\n",pr->evt_type);
+						printf("Addr type:0x%x\r\n",pr->bdaddr_type);
+						printf("Addr:");
+						uint8_t i = 0;
+						for(i=0;i<6;i++)
+						{
+							printf("0x%x,",pr->bdaddr[i]);
+						}
+						printf("\r\n");
+					#endif
+					
+				}
+				break;
+				default:break;
 			}
 		}
 		break;

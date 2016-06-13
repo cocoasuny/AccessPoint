@@ -50,6 +50,7 @@
 #define Debug_Sensor_Press
 #define Debug_Sensor_Temperature
 #define Debug_LedControl
+#define Debug_BlueNRG_Scan
 
 
 /******** Task define ********************/

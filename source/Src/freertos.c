@@ -36,15 +36,13 @@
 #include "task.h"
 #include "freertostask.h"
 
-/*******************************************************************************
-* Function Name  : BlueNRGHCITask
-* Description    : BlueNRG HCI Process
-* Input          : pvParameters，创建任务时传入
-* Output         : None
-* Return         : None
-*******************************************************************************/
+/**
+  * @brief  BlueNRG HCI task handler
+  * @param  pvParameters
+  * @retval None
+  */
 void BlueNRGHCITask(void *pvParameters)
-{   
+{   	
     while(1)
     {
         /* Process any pending HCI events read */
