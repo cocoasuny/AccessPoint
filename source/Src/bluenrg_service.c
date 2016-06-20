@@ -135,7 +135,7 @@ tBleStatus Service_Init(void)
         return BLE_GATT_INIT_FAILED;
     }
 
-    ret = aci_gap_init(GAP_CENTRAL_ROLE|GAP_PERIPHERAL_ROLE, 0, 0x07, &service_handle, &dev_name_char_handle, &appearance_char_handle);
+    ret = aci_gap_init(GAP_CENTRAL_ROLE, 0, 0x07, &service_handle, &dev_name_char_handle, &appearance_char_handle);
 
 #ifdef Debug_BlueNRF
     if(ret != BLE_STATUS_SUCCESS)
@@ -184,8 +184,8 @@ tBleStatus Service_Init(void)
 tBleStatus Start_Advertise(void)
 {
     tBleStatus ret;
-    char local_name[DeviceMaxName];
-    uint8_t  device_name_len = 0,local_name_len = 0;
+//    char local_name[DeviceMaxName];
+//    uint8_t  device_name_len = 0,local_name_len = 0;
     
 	ret = aci_gatt_update_char_value(service_handle, dev_name_char_handle, 0,
                                    strlen(devicename), (uint8_t *)devicename);  
@@ -193,17 +193,17 @@ tBleStatus Start_Advertise(void)
     /* Set output power level */
 	ret = Ble_SetTx_Power(g_tx_power_level);
     
-	/* disable scan response */
-	hci_le_set_scan_resp_data(0,NULL);
-	
-    /* Covern devicename to local_name */
-    device_name_len = strlen(devicename);
-    local_name_len = device_name_len + 1;
-    local_name[0] = AD_TYPE_COMPLETE_LOCAL_NAME;
-    memcpy(local_name+1,devicename,device_name_len);
-    
-	ret = aci_gap_set_discoverable(ADV_IND, 0, 0, PUBLIC_ADDR, NO_WHITE_LIST_USE,
-                                 local_name_len, local_name, 0, NULL, 0, 0);  
+//	/* disable scan response */
+//	hci_le_set_scan_resp_data(0,NULL);
+//	
+//    /* Covern devicename to local_name */
+//    device_name_len = strlen(devicename);
+//    local_name_len = device_name_len + 1;
+//    local_name[0] = AD_TYPE_COMPLETE_LOCAL_NAME;
+//    memcpy(local_name+1,devicename,device_name_len);
+//    
+//	ret = aci_gap_set_discoverable(ADV_IND, 0, 0, PUBLIC_ADDR, NO_WHITE_LIST_USE,
+//                                 local_name_len, local_name, 0, NULL, 0, 0);  
 
     return ret;
 }

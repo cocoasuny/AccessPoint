@@ -55,7 +55,7 @@
 #include "bluenrg_remotecontrol_service.h"
 #include "global_typedef.h"
 #include "ANO_DT.h"
-
+#include "shell.h"
 
 extern volatile AxesRaw_t  g_Acc;         //加速度传感器数据
 extern volatile AxesRaw_t  g_Gyro;        //陀螺仪传感器数据

@@ -1,0 +1,370 @@
+/*********************************Copyright (c)*********************************
+**---------------------------------File Info------------------------------------
+** File Name:               shell.c
+** Last modified Date:      2014/3/5 16:43:59
+** Last Version:            V2  
+** Description:             none
+**
+**------------------------------------------------------------------------------
+** Created By:              wanxuncpx
+** Created date:            2014/3/5 16:43:58
+** Version:                 V2
+** Descriptions:            适合于STM32
+**------------------------------------------------------------------------------
+** Libraries:               STM32F10x_StdPeriph_Driver
+** version                  V3.5
+*******************************************************************************/
+
+
+#include "shell.h"      //包含shell接口文件
+
+#define  SHELL_HAL_EXT
+
+//是否使用扩展的shell接口
+#ifdef SHELL_HAL_EXT
+  #include "shell_hal.h"    //本地的shell文件
+#else
+  #include "console.h"      //标准的shell文件
+#endif
+
+/******************************************************************************
+********************************* Shell.h定义 *********************************
+******************************************************************************/
+/*---------------------* 
+*     Shell 收发标记
+*----------------------*/
+volatile uint16_t   shell_rx_rdy = 0;                     //0:空闲，非零：忙
+volatile uint8_t    shell_rx_buff[SHELL_RX_MAX+1]="\0";   //接收缓存
+
+
+//接收
+static volatile uint16_t    shell_rx_index = 0;           //数据接收标记
+
+//发送
+static volatile uint8_t     shell_tx_buff[SHELL_TX_MAX+1]="\0";
+static volatile uint16_t    shell_tx_size  = 0;             //0:空闲，非零：忙
+static volatile uint16_t    shell_tx_index = 0;             //发送数据标记
+
+  
+/****************************************************************************** 
+/ 函数功能:串口初始化,使用中断单字节接收数据 
+/ 修改日期:none 
+/ 输入参数:baud 波特率 
+/ 输出参数:none 
+/ 使用说明:none 
+******************************************************************************/  
+void shell_Init(uint32_t baud)
+{
+//    USART_InitTypeDef   USART_InitStructure;
+//    NVIC_InitTypeDef    NVIC_UART_Cfg;  //UART中断向量  
+//    
+//	//--------------------------- 先定义好数据结构 ---------------------------  
+//    //定义好USART结构体
+
+//    USART_InitStructure.USART_BaudRate      = baud;
+//    USART_InitStructure.USART_WordLength    = USART_WordLength_8b;
+//    USART_InitStructure.USART_StopBits      = USART_StopBits_1;
+//    USART_InitStructure.USART_Parity        = USART_Parity_No ;
+//    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+//    USART_InitStructure.USART_Mode          = USART_Mode_Tx | USART_Mode_Rx;
+//    USART_InitStructure.USART_BaudRate = USART_InitStructure.USART_BaudRate;    //防止编译报错  
+//    
+//    //定义好NVIC:UART中断  
+//    NVIC_UART_Cfg.NVIC_IRQChannel = CONSOLE_IRQn;
+//    NVIC_UART_Cfg.NVIC_IRQChannelPreemptionPriority = 1;
+//    NVIC_UART_Cfg.NVIC_IRQChannelSubPriority = CONSOLE_UART_PRIO;
+//    NVIC_UART_Cfg.NVIC_IRQChannelCmd = ENABLE;
+//    NVIC_UART_Cfg.NVIC_IRQChannel = NVIC_UART_Cfg.NVIC_IRQChannel;              //防止编译报错  
+//    
+//    //模式配置  
+//    //--------------------------- 中断方式收发数据 ----------------------------
+//    CONSOLE_UART_RCC_INIT();                                //打开USART的时钟  
+//    USART_Cmd(CONSOLE, DISABLE);                            //关闭UART  
+//    
+//    USART_Init(CONSOLE, &USART_InitStructure);              //初始化串口  
+//    
+//    USART_ITConfig(CONSOLE, USART_IT_RXNE, ENABLE);
+//    USART_ITConfig(CONSOLE, USART_IT_IDLE, ENABLE);
+//    
+//    USART_Cmd(CONSOLE, ENABLE);
+//    
+//    NVIC_Init(&NVIC_UART_Cfg);                              //配置好NVIC  
+}
+
+void shell_SendStr(void * ptAsc)
+{                                   //中断方式
+    //--------------------------- 中断方式收发数据 ----------------------------
+    uint16_t        i,size;
+    uint8_t         *ptDst;
+    uint8_t const   *ptSrc;     //源数据，只读不写
+    
+    //计算字符串长度
+    ptSrc = (uint8_t const *)ptAsc;
+    size  = 0;
+    while(*ptSrc++){size++;}
+    
+    //判断字符串是否超过缓冲
+    if(size > SHELL_TX_MAX)
+    {
+        //关闭中断发送方式
+        shell_tx_index = 0;
+        shell_tx_size  = 0;
+        CONSOLE->CR1 &= ~USART_CR1_TXEIE;        //关闭发送完毕中断
+        
+        ptSrc = (uint8_t const *)ptAsc;
+        while(size--)
+        {
+            while( (CONSOLE->SR & UART_FLAG_TXE) == RESET );
+            CONSOLE->DR = *ptSrc++;
+        }
+    }
+    else if( !(CONSOLE->CR1 & USART_CR1_TXEIE) )
+    {
+		//如果未启用非空中断则,启用非空中断发送数据  
+		//复制数据  
+
+        ptDst = (uint8_t *)shell_tx_buff;
+        ptSrc = (uint8_t const *)ptAsc;
+        for(i=0; i<size; i++)
+            *ptDst++ = *ptSrc++;
+        
+        //启动发送中断  
+        shell_tx_index = 0;
+        shell_tx_size  = size;
+        CONSOLE->CR1 |= USART_CR1_TXEIE;        //启动发送非空中断      
+    }
+}
+
+
+void shell_SendHex(void * ptHex,uint16_t size)
+{ 
+	//中断方式  
+	//--------------------------- 中断方式收发数据 ----------------------------  
+
+    uint16_t        i;
+    uint8_t         *ptDst;
+    uint8_t const   *ptSrc;     //源数据只读不写  
+
+    if(size > SHELL_TX_MAX)
+    {
+        //关闭中断发送方式 
+        shell_tx_index = 0;
+        shell_tx_size  = 0;
+        CONSOLE->CR1 &= ~USART_CR1_TXEIE;        //关闭发送完毕中断  
+        
+        //直接发送数据  
+        ptSrc = (uint8_t const *)ptHex;
+        while(size--)
+        {
+            while( (CONSOLE->SR & UART_FLAG_TXE) == RESET );
+            CONSOLE->DR = *ptSrc++;
+        }
+    }
+    else if( !(CONSOLE->CR1 & USART_CR1_TXEIE) )
+    {
+        //如果未启用非空中断则,启用非空中断发送数据  
+		//复制数据 
+
+        ptDst = (uint8_t *)shell_tx_buff;
+        ptSrc = (uint8_t const *)ptHex;   
+        for(i=0; i<size; i++)
+            *ptDst++ = *ptSrc++;
+        
+        //启动发送中断  
+        shell_tx_index = 0;
+        shell_tx_size  = size;
+        CONSOLE->CR1 |= USART_CR1_TXEIE;        //启动发送非空中断         
+    }
+}
+/**
+  * @brief  Rx Transfer completed callbacks.
+  * @param  huart: pointer to a UART_HandleTypeDef structure that contains
+  *                the configuration information for the specified UART module.
+  * @retval None
+  */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
+  
+  /* NOTE: This function Should not be modified, when the callback is needed,
+           the HAL_UART_TxCpltCallback could be implemented in the user file
+   */
+	
+	if(huart == &huart1)
+	{
+		printf("1\r\n");
+	}
+}
+
+void CONSOLE_IRQHandler(void)
+{
+    uint8_t     rxd_reg,txd_reg;
+    uint16_t    isr_reg;
+    
+	//中断配置  
+	//--------------------------- 中断方式收发数据 ----------------------------  
+    isr_reg = CONSOLE->SR;
+    //接收中断  
+    if( (CONSOLE->CR1 & USART_CR1_RXNEIE) && (isr_reg & USART_SR_RXNE) )
+    {
+        rxd_reg = CONSOLE->DR;
+        if(shell_rx_rdy)shell_rx_index = 0;     //忙模式收到字节,重置接收指针  
+        else
+        {
+            if( shell_rx_index < SHELL_RX_MAX)
+            {
+                shell_rx_buff[shell_rx_index] = rxd_reg;
+                shell_rx_index++;
+            }
+            else
+            {
+                shell_rx_index = 0; 
+            }
+        }
+    }
+    
+    if( (CONSOLE->CR1 & USART_CR1_IDLEIE) && (isr_reg & USART_SR_IDLE) )
+    {
+        CONSOLE->SR;
+        CONSOLE->DR;
+        if(shell_rx_rdy)shell_rx_index = 0;     //忙模式收到空闲,重置接收指针  
+        else
+        {
+            if( (shell_rx_index >=2) && ('\r' == shell_rx_buff[shell_rx_index-2]) &&
+                ('\n' == shell_rx_buff[shell_rx_index-1])   )       //以"\r\n"结尾  
+            {
+                shell_rx_rdy = shell_rx_index;
+                shell_rx_index = 0;
+            }
+            else if( (shell_rx_index > 0) && ('\b' == shell_rx_buff[shell_rx_index-1]) ) //以\b结尾  
+            {
+                shell_rx_index = shell_rx_index <2? 0:shell_rx_index-2;
+                printf(" \b");      //发送辅助删除           
+            } 
+        } 
+    }
+    
+    //发送非空中断    
+    if( (CONSOLE->CR1 & USART_CR1_TXEIE) && (isr_reg & USART_SR_TXE ) )
+    {
+        if(shell_tx_size && (shell_tx_index < shell_tx_size) )
+        {
+            txd_reg = shell_tx_buff[shell_tx_index++];
+            CONSOLE->DR = txd_reg;  //发送数据 
+        }
+        else
+        {
+             //关闭非空中断  
+            shell_tx_index = 0;
+            shell_tx_size = 0;
+            CONSOLE->CR1 &= ~USART_CR1_TXEIE;        //关闭发送完毕中断 
+        }         
+    }
+}
+
+
+
+void Shell_Invalid_Service(void)
+{
+    int         tx_len,i;
+    uint8_t *   ptSrc;
+    uint8_t *   ptDst;
+    uint8_t     tmp_buff[64];
+    
+    //指令识别  
+    if(2 > shell_rx_rdy)
+    {
+        shell_rx_buff[0]  = 0;
+        return;
+    }
+    else if( ('\r' == shell_rx_buff[shell_rx_rdy-2]) && ('\n' == shell_rx_buff[shell_rx_rdy-1]) )
+    {
+        ptSrc = (uint8_t *)shell_rx_buff;
+        if(2 == shell_rx_rdy)
+        {
+            //填写数据  
+            tx_len = (uint16_t)sprintf((void *)tmp_buff,"\r\nAT:OK!\r\n");
+        
+            //发送数据 
+            shell_SendHex(tmp_buff,tx_len);     
+        }
+        else goto ERROR_LOOP;
+    }
+    else
+    {
+ERROR_LOOP:
+        //填写指令码
+        tx_len = (uint16_t)sprintf((void *)tmp_buff,"\r\nAT: Cmd Error:\t\"");
+        
+        //计算地址,填写数据,填写尾部 
+        ptDst = tmp_buff + tx_len;
+        ptSrc = (uint8_t *)shell_rx_buff;
+        if(shell_rx_rdy > 32)
+        {
+            for(i=0; i<32; i++)
+            { 
+                if( (*ptSrc > 126) || (*ptSrc < 32) )
+                {
+                    *ptDst++ = '?';
+                     ptSrc++;   
+                }
+                else
+                {
+                    *ptDst++ = *ptSrc++; 
+                } 
+            }
+            *(ptDst-2) = '-';
+            *(ptDst-1) = '>';
+            tx_len += 32;
+        }
+        else
+        {
+            for(i=0; i<shell_rx_rdy; i++)
+            { 
+                *ptDst++ = *ptSrc++;
+                tx_len++; 
+            }
+            *(ptDst-2) = '<';
+            *(ptDst-1) = '-';
+        }
+        tx_len += (uint16_t)sprintf((void *)ptDst,"\"\r\n");
+  
+        //发送数据 
+        shell_SendHex(tmp_buff,tx_len);  //发送数据 
+    }
+    
+    //清除数据返回程序  
+    shell_rx_buff[0]  = 0;
+    shell_rx_rdy      = 0;
+}
+
+/****************************************************************************** 
+/ 函数功能:字符串测试匹配指令 
+/ 修改日期:2014/3/5 19:30:22 
+/ 输入参数:none 
+/ 输出参数:none 
+/ 使用说明:none 
+******************************************************************************/  
+bool StrComp(void * buffer,void * StrCmd)
+{
+    uint8_t i;
+    uint8_t * ptBuf;
+    uint8_t * ptCmd;
+    
+    ptBuf = (uint8_t *)buffer;
+    ptCmd = (uint8_t *)StrCmd;
+    for(i=0; i<255; i++)
+    {
+        if(ptCmd[i])
+        {
+            if(ptBuf[i] != ptCmd[i])return false;
+        }
+        else 
+        {
+            if(i)return i;
+            else return false;    
+        }
+    }
+    return false;
+}
+

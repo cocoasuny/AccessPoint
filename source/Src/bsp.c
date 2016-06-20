@@ -44,7 +44,7 @@
  */
 /* uart */
 static uint8_t UsbSendData(uint8_t* pBuf, uint16_t nLen);
-static UART_HandleTypeDef huart1;
+UART_HandleTypeDef huart1;
 static UART_HandleTypeDef huart2;
 
 /*I2c*/
@@ -99,7 +99,7 @@ void Bsp_Init(void)
 {
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
-    MX_USART1_UART_Init();   //for debug
+    MX_USART1_UART_Init();   //for debug & shell
 	MX_USART2_UART_Init();   //ANO地面站使用
     MX_SDIO_SD_Init();
     
@@ -333,7 +333,8 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 		/* USER CODE BEGIN USART1_MspInit 1 */
-
+		HAL_NVIC_SetPriority(USART1_IRQn, 5, 0);
+		HAL_NVIC_EnableIRQ(USART1_IRQn);
 		/* USER CODE END USART1_MspInit 1 */
 	}
 	else if(huart->Instance==USART2)
@@ -386,7 +387,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
 		HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9|GPIO_PIN_10);
 
 		/* USER CODE BEGIN USART1_MspDeInit 1 */
-
+		HAL_NVIC_DisableIRQ(USART1_IRQn);
 		/* USER CODE END USART1_MspDeInit 1 */
 	}
 	else if(huart->Instance==USART2)
