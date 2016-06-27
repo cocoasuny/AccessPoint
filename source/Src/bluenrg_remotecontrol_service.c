@@ -75,7 +75,7 @@ tBleStatus Add_RemoteControl_Service(void)
 
     fail:
     #ifdef Debug_BlueNRF
-        DLog("Error while adding Remote Control service.\n");
+        LOG("Error while adding Remote Control service.\n");
     #endif
     return BLE_STATUS_ERROR ;    
 }

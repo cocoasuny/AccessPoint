@@ -91,7 +91,7 @@ tBleStatus Add_Acc_Service(void)
 
     fail:
     #ifdef Debug_BlueNRF
-        DLog("Error while adding ACC service.\n");
+        LOG("Error while adding ACC service.\n");
     #endif
     return BLE_STATUS_ERROR ;    
 }
@@ -236,7 +236,7 @@ tBleStatus Add_Environmental_Sensor_Service(void)
     return BLE_STATUS_SUCCESS; 
 
     fail:
-    DLog("Error while adding ENV_SENS service.\n");
+    LOG("Error while adding ENV_SENS service.\n");
     return BLE_STATUS_ERROR ;  
 }
 /*******************************************************************************
@@ -256,7 +256,7 @@ tBleStatus Temp_Update(int16_t temp)
     if (ret != BLE_STATUS_SUCCESS)
     {
         #ifdef Debug_Sensor_Temperature
-            DLog("Error while updating TEMP characteristic.\n") ;
+            LOG("Error while updating TEMP characteristic.\n") ;
         #endif
         return BLE_STATUS_ERROR ;
     }
@@ -281,7 +281,7 @@ tBleStatus Press_Update(int32_t press)
     if (ret != BLE_STATUS_SUCCESS)
     {
         #ifdef Debug_Sensor_Press
-            DLog("Error while updating TEMP characteristic.\n");
+            LOG("Error while updating TEMP characteristic.\n");
         #endif
         return BLE_STATUS_ERROR ;
     }
@@ -305,7 +305,7 @@ tBleStatus Humidity_Update(uint16_t humidity)
     if (ret != BLE_STATUS_SUCCESS)
     {
         #ifdef Debug_Sensor_Humidity
-            DLog("Error while updating TEMP characteristic.\n") ;
+            LOG("Error while updating TEMP characteristic.\n") ;
         #endif
         return BLE_STATUS_ERROR ;
     }

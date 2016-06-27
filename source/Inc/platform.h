@@ -53,6 +53,10 @@
 #define Debug_BlueNRG_Scan
 
 
+/* Shell Switch */
+#define SHELL_ENABLE    //Shell使能
+#define RTC_SHELL       //注释掉屏蔽RTC Shell功能
+
 /* Size of Reception buffer */
 #define RXBUFFERSIZE          1
 
@@ -68,9 +72,9 @@
 
 
 #ifdef PRINTFLOG
-    #define DLog  printf
+    #define LOG  printf
 #else
-    #define DLog  USBLog
+    #define LOG  USBLog
 #endif    
 
 

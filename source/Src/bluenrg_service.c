@@ -88,7 +88,7 @@ void BlueNRG_Init(void)
 #ifdef Debug_BlueNRF
     /* get the BlueNRG HW and FW versions */
     getBlueNRGVersion(&hwVersion, &fwVersion);
-    DLog("HWver %x, FWver %x\r\n", hwVersion, fwVersion);
+    LOG("HWver %x, FWver %x\r\n", hwVersion, fwVersion);
 #endif
     
     /* Advertising Init */
@@ -140,7 +140,7 @@ tBleStatus Service_Init(void)
 #ifdef Debug_BlueNRF
     if(ret != BLE_STATUS_SUCCESS)
     {
-        DLog("GAP_Init failed...0x%x\r\n",ret);
+        LOG("GAP_Init failed...0x%x\r\n",ret);
     }
 #endif
 
@@ -237,7 +237,7 @@ tBleStatus Ble_AdvAddress_Set(void)
 #ifdef Debug_BlueNRF
     if(ret != BLE_STATUS_SUCCESS)
     {
-        DLog("Device Address failed...0x%x\r\n",ret);
+        LOG("Device Address failed...0x%x\r\n",ret);
     }
 #endif
 

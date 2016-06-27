@@ -33,12 +33,23 @@
 /*---------------------* 
 *     Shell 收发标记
 *----------------------*/
+
+#ifdef SHELL_ENABLE
+
 volatile uint16_t   shell_rx_rdy = 0;                     //0:空闲，非零：忙
 volatile uint8_t    shell_rx_buff[SHELL_RX_MAX+1]="\0";   //接收缓存
 
 
 //接收
 static volatile uint16_t    shell_rx_index = 0;           //数据接收标记
+
+
+//命令帮助文件,显示所有可用Shell模块
+const char Shell_HelpMsg[] =
+	"Pls Enter [ModuleName help] for more info\r\n"
+	"Available Shell Modules:\r\n"
+	"  rtc\r\n"
+	"\r\n";
 
 /**
   * @brief  Shell串口初始化,使用中断单字节接收数据 
@@ -198,6 +209,11 @@ void Shell_Invalid_Service(void)
             //发送数据 
             printf("%s\r\n",tmp_buff);
         }
+		else if(StrComp(ptSrc,"help\r\n"))
+		{
+			//显示所有可用Shell Module
+			printf("%s",Shell_HelpMsg);
+		}
         else goto ERROR_LOOP;
     }
     else
@@ -277,4 +293,20 @@ bool StrComp(void * buffer,void * StrCmd)
     }
     return false;
 }
+/**
+  * @brief  Shell_ProcessorHandler
+  * @param  None
+  * @retval None
+  */
+void Shell_ProcessorHandler(void)
+{
+	if(shell_rx_rdy)
+	{
+		#ifdef RTC_SHELL
+			Shell_RTC_Service();
+		#endif
+		Shell_Invalid_Service();  //指令无效的缺省处理
+	}
+}
 
+#endif

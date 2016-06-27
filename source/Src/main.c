@@ -139,14 +139,9 @@ void LedCtlTask(void *pvParameters)
     while(1)
     {
         BSP_LED_Toggle();
-        
-        if(shell_rx_rdy)
-        {
-            #ifdef RTC_SHELL
-                Shell_RTC_Service();
-            #endif
-            Shell_Invalid_Service();  //指令无效的缺省处理
-        }
+#ifdef SHELL_ENABLE			
+		Shell_ProcessorHandler();     //Shell处理函数
+#endif		
         /* for test */
 //        g_Axes_data.AXIS_X += 100;
 //        g_Axes_data.AXIS_Y += 100;
