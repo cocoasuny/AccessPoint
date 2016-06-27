@@ -553,6 +553,11 @@
               <FileType>1</FileType>
               <FilePath>..\source\Src\Shell\rtc_shell.c</FilePath>
             </File>
+            <File>
+              <FileName>bluenrg_central_shell.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\source\Src\Shell\bluenrg_central_shell.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -1,14 +1,14 @@
 /*********************************Copyright (c)*********************************
-** File Name:               rtc_shell.c
-** Last modified Date:      2014/3/5 9:27:49
-** Last Version:            V2.0  
+** File Name:               bluenrg_central_shell.c
+** Last modified Date:      2016/6/27
+** Last Version:            V1.0  
 ** Description:             文件操作命令解释
 ** HW_CMU:                  ANSIC
 ** Libraries:               NONE
 ** version                  NONE
 ******************************************************************************/
 
-
+#include "main.h"
 #include "shell.h"          //Shell
 
 /*---------------------* 
@@ -23,24 +23,22 @@
 #endif
 
 
-#ifdef RTC_SHELL
-  extern void Shell_RTC_Service(void);
+#ifdef BLUENRG_CENTRAL_SHELL
+  extern void Shell_BlueNRG_Central_Service(void);
 #else
-  void Shell_RTC_Service(void){;}
+  void Shell_BlueNRG_Central_Service(void){;}
 #endif
 
-#ifdef RTC_SHELL
+#ifdef BLUENRG_CENTRAL_SHELL
 /*---------------------* 
 *       
 *----------------------*/
 //命令帮助文件
-const char RTC_HelpMsg[] =
-	"[RTC contorls]\r\n"
-	" rtc help\t\t- help.\r\n"
-	" rtc rd info\t\t- Read RTC info.\r\n"
-	" rtc rd time\t\t- Read RTC date and time.\r\n"
-	" rtc wr time <Hour>:<Minute>:<Second>    - Write time.\r\n"
-	" rtc wr date <Year>-<Month>-<Day> <Week> - Warning Week=[1..7]\r\n"
+const char BlueNRGCentral_HelpMsg[] =
+	"[BlueNRGCentral contorls]\r\n"
+	" ble central help\t\t- help.\r\n"
+	" ble central start scan\r\n"
+	" ble central stop scan\r\n"
 	"\r\n";
 	
 /****************************************************************************** 
@@ -49,24 +47,15 @@ const char RTC_HelpMsg[] =
   
 /****************************************************************************** 
 / 函数功能:文件系统Shel指令处理 
-/ 修改日期:2013/9/10 19:04:15 
 / 输入参数:输入当前的程序版本 
 / 输出参数:none 
 / 使用说明:none 
 ********************************************************************************/
-void Shell_RTC_Service(void)
+void Shell_BlueNRG_Central_Service(void)
 {
     uint8_t     *ptRxd;         //用于接收指令处理  
     uint8_t     i;
-	int     	Hour = 0;
-	int     	Min  = 0;
-	int     	Sec  = 0;
-	int         Year = 0;
-	int         Mon  = 0;
-	int         Date = 0;
-	int         Week = 0;
-    uint8_t     arg[32];
-	uint16_t    retval; 
+	tBleStatus  ret;
 
     //指令初级过滤  
     //--------------------------------------------------------------------------  
@@ -77,47 +66,44 @@ void Shell_RTC_Service(void)
     
     //长度和前缀过滤 
     ptRxd = (uint8_t *)shell_rx_buff;
-    if( (' ' != shell_rx_buff[3]) || ('r' != shell_rx_buff[0]) || (i < 6) || 
-        ('t' != shell_rx_buff[1]) || ('c' != shell_rx_buff[2]) )  return;
-       
+    if( (' ' != shell_rx_buff[3]) || ('b' != shell_rx_buff[0]) || (i < 14) || 
+        ('l' != shell_rx_buff[1]) || ('e' != shell_rx_buff[2]) ||
+		('c' != shell_rx_buff[4]) || ('e' != shell_rx_buff[5]) ||
+		('n' != shell_rx_buff[6]) || ('t' != shell_rx_buff[7]) || 
+		('r' != shell_rx_buff[8]) || ('a' != shell_rx_buff[9]) ||
+		('l' != shell_rx_buff[10]) || (' ' != shell_rx_buff[11]) 
+	)  
+	{
+		return;
+	}
+
     //处理指令
     //--------------------------------------------------------------------------
-    ptRxd += 4;
-    if(StrComp(ptRxd,"rd time"))    //按包读取指令
+    ptRxd += 12;
+    if(StrComp(ptRxd,"start scan"))    //开启扫描指令
     {
-        printf("Time:%s\r\n",arg); 
+		/* Start scan */
+		ret = aci_gap_start_general_discovery_proc(0x10, 0x10, 
+													 0x00, /* public address */
+													 0x00);
+		#ifdef Debug_BlueNRG_Scan
+		if (ret != BLE_STATUS_SUCCESS)
+		{
+			printf("start scan failed: 0x%x\n",ret);
+		}
+		else 
+		{
+			printf("start scan OK\n");  
+		}
+		#endif		
     }
-    else if(StrComp(ptRxd,"rd info\r\n"))      //读取RTC信息
+	else if(StrComp(ptRxd,"stop scan"))  //停止扫描指令
     {
-           
-    }
-    else if(StrComp(ptRxd,"wr time "))      //
-    {
-		retval = sscanf((void*)shell_rx_buff,"%*s%*s%*s%d:%d:%d",&Hour,&Min,&Sec);  
-        if(3 != retval)
-		{
-			return;   //没有接收到3个输入数据,直接退出  
-		}
-		else
-		{
-			printf("Set Time :%d,%d,%d\r\n",Hour,Min,Sec);
-		}
-    }
-    else if(StrComp(ptRxd,"wr date "))      //
-    {
-		retval = sscanf((void*)shell_rx_buff,"%*s%*s%*s%d-%d-%d %d",&Year,&Mon,&Date,&Week);  
-		if(4 != retval)
-		{
-			return;   //没有接收到4个输入数据,直接退出 
-		}
-		else
-		{
-			printf("Set Date:%d-%d-%d %d\r\n",Year,Mon,Date,Week);
-		}
+        printf("Stop scan\r\n"); 
     }
     else if(StrComp(ptRxd,"help\r\n"))      //
     {
-        printf("%s",RTC_HelpMsg);
+        printf("%s",BlueNRGCentral_HelpMsg);
     }
     else return;
     

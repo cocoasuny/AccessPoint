@@ -78,5 +78,6 @@ extern bool StrComp(void * buffer,void * StrCmd);   //字符串匹配比较函�
 extern void Shell_ProcessorHandler(void);
 extern void Shell_Invalid_Service(void); //指令未处理服务(会处理shell_rx_rdy信号)  
 extern void Shell_RTC_Service(void);  
+extern void Shell_BlueNRG_Central_Service(void);
  
 #endif  

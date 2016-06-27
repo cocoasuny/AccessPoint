@@ -13,6 +13,24 @@
 **------------------------------------------------------------------------------
 ** Libraries:               STM32F10x_StdPeriph_Driver
 ** version                  V3.5
+** 使用说明：
+** 		（1）:	增加xxx_xxx_shell.c文件
+**      （2）:  xxx_xxx_shell.c文件中增加命令帮助文件
+**				const char BlueNRGCentral_HelpMsg[] =
+						"[BlueNRGCentral contorls]\r\n"
+						" ble central help\t\t- help.\r\n"
+						" ble central start scan\r\n"
+						" ble central stop scan\r\n"
+						"\r\n";
+**       (3):   增加Shell_xxx_xxx_Service()函数，在该函数中，对指令进行解析。
+**       (4):	在shell.c文件中增加命令帮助文件,显示所有可用Shell模块
+				const char Shell_HelpMsg[] =
+				"Pls Enter [ModuleName help] for more info\r\n"
+				"Available Shell Modules:\r\n"
+				"  rtc\r\n"
+				"  ble central\r\n"
+				"\r\n";
+**     	 (5):   在void Shell_ProcessorHandler(void)函数中，调用对应的Shell_xxx_xxx_Service()函数。
 *******************************************************************************/
 
 
@@ -49,6 +67,7 @@ const char Shell_HelpMsg[] =
 	"Pls Enter [ModuleName help] for more info\r\n"
 	"Available Shell Modules:\r\n"
 	"  rtc\r\n"
+	"  ble central\r\n"
 	"\r\n";
 
 /**
@@ -304,6 +323,9 @@ void Shell_ProcessorHandler(void)
 	{
 		#ifdef RTC_SHELL
 			Shell_RTC_Service();
+		#endif
+		#ifdef BLUENRG_CENTRAL_SHELL
+			Shell_BlueNRG_Central_Service();
 		#endif
 		Shell_Invalid_Service();  //指令无效的缺省处理
 	}

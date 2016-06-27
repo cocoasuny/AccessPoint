@@ -119,6 +119,9 @@ void Bsp_Init(void)
         HAL_Delay(5000);
     #endif
     LOG("Start...\r\n");
+	#ifdef SHELL_ENABLE
+		LOG("pls enter help for more usages\r\n");
+	#endif
 }    
 
 

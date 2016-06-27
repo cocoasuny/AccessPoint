@@ -73,7 +73,7 @@ int main(void)
 
     /* Configure the system clock */
     SystemClock_Config();
-
+  
     /* Bsp Init */
     Bsp_Init();
     

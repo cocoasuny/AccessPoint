@@ -43,22 +43,22 @@
   */
 void BlueNRGHCITask(void *pvParameters)
 {   
-    /* Create the Tasks */
-	tBleStatus ret;
-	
-	ret = aci_gap_start_general_discovery_proc(0x10, 0x10, 
-                                                 0x00, /* public address */
-                                                 0x00);
-	#ifdef Debug_BlueNRG_Scan
-	if (ret != BLE_STATUS_SUCCESS)
-	{
-		printf("aci_gap_start_general_discovery_proc() failed: 0x%x\n",ret);
-	}
-	else 
-	{
-		printf("aci_gap_start_general_discovery_proc OK\n");  
-	}
-	#endif
+//    /* Create the Tasks */
+//	tBleStatus ret;
+//	
+//	ret = aci_gap_start_general_discovery_proc(0x10, 0x10, 
+//                                                 0x00, /* public address */
+//                                                 0x00);
+//	#ifdef Debug_BlueNRG_Scan
+//	if (ret != BLE_STATUS_SUCCESS)
+//	{
+//		printf("aci_gap_start_general_discovery_proc() failed: 0x%x\n",ret);
+//	}
+//	else 
+//	{
+//		printf("aci_gap_start_general_discovery_proc OK\n");  
+//	}
+//	#endif
 	
     while(1)
     {
