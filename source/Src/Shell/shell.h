@@ -75,6 +75,6 @@ extern bool StrComp(void * buffer,void * StrCmd);   //字符串匹配比较函�
 *----------------------*/  
 //在main.c函数while()中判断shell_rx_rdy是否为非零,为非零才执行以下程序  
 extern void Shell_Invalid_Service(void); //指令未处理服务(会处理shell_rx_rdy信号)  
-  
+extern void Shell_RTC_Service(void);  
  
 #endif  

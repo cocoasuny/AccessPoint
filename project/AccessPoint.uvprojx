@@ -548,6 +548,11 @@
               <FileType>1</FileType>
               <FilePath>..\source\Src\Shell\shell.c</FilePath>
             </File>
+            <File>
+              <FileName>rtc_shell.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\source\Src\Shell\rtc_shell.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

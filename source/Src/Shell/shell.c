@@ -240,7 +240,7 @@ ERROR_LOOP:
         tx_len += (uint16_t)sprintf((void *)ptDst,"\"\r\n");
   
         //发送数据 
-        printf("%s\r\n",ptDst);
+        printf("%s\r\n",tmp_buff);
     }
     
     //清除数据返回程序  
