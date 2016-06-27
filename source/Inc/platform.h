@@ -53,6 +53,9 @@
 #define Debug_BlueNRG_Scan
 
 
+/* Size of Reception buffer */
+#define RXBUFFERSIZE          1
+
 /******** Task define ********************/
 /* BlueNRG HCI Process Task */
 #define Task_BlueNRGHCI_Stack        500    //task stack

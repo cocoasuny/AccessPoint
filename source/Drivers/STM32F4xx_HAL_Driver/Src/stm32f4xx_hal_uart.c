@@ -1111,7 +1111,8 @@ void HAL_UART_IRQHandler(UART_HandleTypeDef *huart)
   { 
     __HAL_UART_CLEAR_OREFLAG(huart);
     
-    huart->ErrorCode |= HAL_UART_ERROR_ORE;
+   //屏蔽掉，否则中断接收长度大于1数据时，报HAL_UART_ERROR_ORE错误 
+//    huart->ErrorCode |= HAL_UART_ERROR_ORE;
   }
   
   tmp1 = __HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE);

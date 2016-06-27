@@ -40,7 +40,8 @@ volatile AxesRaw_t  g_Gyro;        //陀螺仪传感器数据
 volatile AxesRaw_t  g_Mag;         //地磁传感器数据
 volatile Attitude_t g_AttitudeInfo;  //姿态信息
 uint16_t g_LedFlashTime = 100;
-
+uint8_t  g_aRxBuffer[RXBUFFERSIZE] = {0};
+;
 /* Private variables ---------------------------------------------------------*/
 SD_HandleTypeDef hsd;
 HAL_SD_CardInfoTypedef SDCardInfo;

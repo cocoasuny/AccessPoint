@@ -62,6 +62,7 @@ extern volatile AxesRaw_t  g_Gyro;        //陀螺仪传感器数据
 extern volatile AxesRaw_t  g_Mag;         //地磁传感器数据
 extern volatile Attitude_t g_AttitudeInfo;  //姿态信息
 extern uint16_t g_LedFlashTime;
+extern uint8_t  g_aRxBuffer[RXBUFFERSIZE];;
 
 void MX_GPIO_Init(void);
 void MX_SDIO_SD_Init(void);

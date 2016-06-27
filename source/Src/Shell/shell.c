@@ -40,21 +40,13 @@ volatile uint8_t    shell_rx_buff[SHELL_RX_MAX+1]="\0";   //接收缓存
 //接收
 static volatile uint16_t    shell_rx_index = 0;           //数据接收标记
 
-//发送
-static volatile uint8_t     shell_tx_buff[SHELL_TX_MAX+1]="\0";
-static volatile uint16_t    shell_tx_size  = 0;             //0:空闲，非零：忙
-static volatile uint16_t    shell_tx_index = 0;             //发送数据标记
-
-  
-/****************************************************************************** 
-/ 函数功能:串口初始化,使用中断单字节接收数据 
-/ 修改日期:none 
-/ 输入参数:baud 波特率 
-/ 输出参数:none 
-/ 使用说明:none 
-******************************************************************************/  
+/**
+  * @brief  Shell串口初始化,使用中断单字节接收数据 
+  * @param  uint32_t baud 
+  */ 
 void shell_Init(uint32_t baud)
 {
+    //已在Bsp初始化中初始化
 //    USART_InitTypeDef   USART_InitStructure;
 //    NVIC_InitTypeDef    NVIC_UART_Cfg;  //UART中断向量  
 //    
@@ -91,91 +83,22 @@ void shell_Init(uint32_t baud)
 //    NVIC_Init(&NVIC_UART_Cfg);                              //配置好NVIC  
 }
 
-void shell_SendStr(void * ptAsc)
-{                                   //中断方式
-    //--------------------------- 中断方式收发数据 ----------------------------
-    uint16_t        i,size;
-    uint8_t         *ptDst;
-    uint8_t const   *ptSrc;     //源数据，只读不写
-    
-    //计算字符串长度
-    ptSrc = (uint8_t const *)ptAsc;
-    size  = 0;
-    while(*ptSrc++){size++;}
-    
-    //判断字符串是否超过缓冲
-    if(size > SHELL_TX_MAX)
-    {
-        //关闭中断发送方式
-        shell_tx_index = 0;
-        shell_tx_size  = 0;
-        CONSOLE->CR1 &= ~USART_CR1_TXEIE;        //关闭发送完毕中断
-        
-        ptSrc = (uint8_t const *)ptAsc;
-        while(size--)
-        {
-            while( (CONSOLE->SR & UART_FLAG_TXE) == RESET );
-            CONSOLE->DR = *ptSrc++;
-        }
-    }
-    else if( !(CONSOLE->CR1 & USART_CR1_TXEIE) )
-    {
-		//如果未启用非空中断则,启用非空中断发送数据  
-		//复制数据  
+/**
+  * @brief  UART error callbacks.
+  * @param  huart: pointer to a UART_HandleTypeDef structure that contains
+  *                the configuration information for the specified UART module.
+  * @retval None
+  */
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
 
-        ptDst = (uint8_t *)shell_tx_buff;
-        ptSrc = (uint8_t const *)ptAsc;
-        for(i=0; i<size; i++)
-            *ptDst++ = *ptSrc++;
-        
-        //启动发送中断  
-        shell_tx_index = 0;
-        shell_tx_size  = size;
-        CONSOLE->CR1 |= USART_CR1_TXEIE;        //启动发送非空中断      
-    }
+  /* NOTE: This function Should not be modified, when the callback is needed,
+           the HAL_UART_ErrorCallback could be implemented in the user file
+   */ 
+    printf("Uart Err:0x%x\r\n",huart->ErrorCode);   
 }
 
-
-void shell_SendHex(void * ptHex,uint16_t size)
-{ 
-	//中断方式  
-	//--------------------------- 中断方式收发数据 ----------------------------  
-
-    uint16_t        i;
-    uint8_t         *ptDst;
-    uint8_t const   *ptSrc;     //源数据只读不写  
-
-    if(size > SHELL_TX_MAX)
-    {
-        //关闭中断发送方式 
-        shell_tx_index = 0;
-        shell_tx_size  = 0;
-        CONSOLE->CR1 &= ~USART_CR1_TXEIE;        //关闭发送完毕中断  
-        
-        //直接发送数据  
-        ptSrc = (uint8_t const *)ptHex;
-        while(size--)
-        {
-            while( (CONSOLE->SR & UART_FLAG_TXE) == RESET );
-            CONSOLE->DR = *ptSrc++;
-        }
-    }
-    else if( !(CONSOLE->CR1 & USART_CR1_TXEIE) )
-    {
-        //如果未启用非空中断则,启用非空中断发送数据  
-		//复制数据 
-
-        ptDst = (uint8_t *)shell_tx_buff;
-        ptSrc = (uint8_t const *)ptHex;   
-        for(i=0; i<size; i++)
-            *ptDst++ = *ptSrc++;
-        
-        //启动发送中断  
-        shell_tx_index = 0;
-        shell_tx_size  = size;
-        CONSOLE->CR1 |= USART_CR1_TXEIE;        //启动发送非空中断         
-    }
-}
 /**
   * @brief  Rx Transfer completed callbacks.
   * @param  huart: pointer to a UART_HandleTypeDef structure that contains
@@ -189,31 +112,19 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   /* NOTE: This function Should not be modified, when the callback is needed,
            the HAL_UART_TxCpltCallback could be implemented in the user file
    */
-	
+//    uint8_t i=0;
 	if(huart == &huart1)
-	{
-		printf("1\r\n");
-	}
-}
-
-void CONSOLE_IRQHandler(void)
-{
-    uint8_t     rxd_reg,txd_reg;
-    uint16_t    isr_reg;
-    
-	//中断配置  
-	//--------------------------- 中断方式收发数据 ----------------------------  
-    isr_reg = CONSOLE->SR;
-    //接收中断  
-    if( (CONSOLE->CR1 & USART_CR1_RXNEIE) && (isr_reg & USART_SR_RXNE) )
-    {
-        rxd_reg = CONSOLE->DR;
-        if(shell_rx_rdy)shell_rx_index = 0;     //忙模式收到字节,重置接收指针  
+	{        
+        //接收中断
+        if(shell_rx_rdy)
+        {
+            shell_rx_index = 0;     //忙模式收到字节,重置接收指针
+        }
         else
         {
             if( shell_rx_index < SHELL_RX_MAX)
             {
-                shell_rx_buff[shell_rx_index] = rxd_reg;
+                shell_rx_buff[shell_rx_index] = g_aRxBuffer[0];
                 shell_rx_index++;
             }
             else
@@ -221,18 +132,23 @@ void CONSOLE_IRQHandler(void)
                 shell_rx_index = 0; 
             }
         }
-    }
-    
-    if( (CONSOLE->CR1 & USART_CR1_IDLEIE) && (isr_reg & USART_SR_IDLE) )
-    {
-        CONSOLE->SR;
-        CONSOLE->DR;
-        if(shell_rx_rdy)shell_rx_index = 0;     //忙模式收到空闲,重置接收指针  
+        
+        if(shell_rx_rdy)
+        {
+            shell_rx_index = 0;     //忙模式收到字节,重置接收指针
+        }
         else
         {
             if( (shell_rx_index >=2) && ('\r' == shell_rx_buff[shell_rx_index-2]) &&
                 ('\n' == shell_rx_buff[shell_rx_index-1])   )       //以"\r\n"结尾  
             {
+//                  // for test 
+//                printf("\r\n");
+//                for(i=0;i<shell_rx_index-2;i++)
+//                {
+//                    printf("%c",shell_rx_buff[i]);
+//                }
+//                printf("\r\n");
                 shell_rx_rdy = shell_rx_index;
                 shell_rx_index = 0;
             }
@@ -240,30 +156,24 @@ void CONSOLE_IRQHandler(void)
             {
                 shell_rx_index = shell_rx_index <2? 0:shell_rx_index-2;
                 printf(" \b");      //发送辅助删除           
-            } 
-        } 
-    }
-    
-    //发送非空中断    
-    if( (CONSOLE->CR1 & USART_CR1_TXEIE) && (isr_reg & USART_SR_TXE ) )
-    {
-        if(shell_tx_size && (shell_tx_index < shell_tx_size) )
+            }
+        }
+        /* Put UART peripheral in reception process ###########################*/  
+        if(HAL_UART_Receive_IT(&huart1, (uint8_t *)g_aRxBuffer, RXBUFFERSIZE) != HAL_OK)
         {
-            txd_reg = shell_tx_buff[shell_tx_index++];
-            CONSOLE->DR = txd_reg;  //发送数据 
+            //printf("Uart Init Error\r\n");
         }
         else
         {
-             //关闭非空中断  
-            shell_tx_index = 0;
-            shell_tx_size = 0;
-            CONSOLE->CR1 &= ~USART_CR1_TXEIE;        //关闭发送完毕中断 
+            //printf("Next Rx\r\n");
         }         
-    }
+	}
 }
-
-
-
+/**
+  * @brief  Shell_Invalid_Service
+  * @param  None
+  * @retval None
+  */
 void Shell_Invalid_Service(void)
 {
     int         tx_len,i;
@@ -286,7 +196,7 @@ void Shell_Invalid_Service(void)
             tx_len = (uint16_t)sprintf((void *)tmp_buff,"\r\nAT:OK!\r\n");
         
             //发送数据 
-            shell_SendHex(tmp_buff,tx_len);     
+            printf("%s\r\n",tmp_buff);
         }
         else goto ERROR_LOOP;
     }
@@ -330,7 +240,7 @@ ERROR_LOOP:
         tx_len += (uint16_t)sprintf((void *)ptDst,"\"\r\n");
   
         //发送数据 
-        shell_SendHex(tmp_buff,tx_len);  //发送数据 
+        printf("%s\r\n",ptDst);
     }
     
     //清除数据返回程序  

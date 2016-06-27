@@ -61,13 +61,9 @@ extern volatile uint8_t    shell_rx_buff[SHELL_RX_MAX+1];   //接收缓冲
 /*---------------------*  
 *    输出函数 
 *----------------------*/  
-//调试Shell的接口数量  
-extern void CONSOLE_IRQHandler(void);  
    
 //初始化Shell  
 extern void shell_Init(uint32_t baud);          //模块初始化  
-extern void shell_SendStr(void * ptStr);        //发送以'\0'结束的字符串  
-extern void shell_SendHex(void * ptHex,uint16_t size);  //发送指定个数的数据  
     
 /*---------------------*  
 *     辅助判断指令 
