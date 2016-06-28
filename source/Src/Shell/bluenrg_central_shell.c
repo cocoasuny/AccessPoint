@@ -55,8 +55,7 @@ void Shell_BlueNRG_Central_Service(void)
 {
     uint8_t     *ptRxd;         //用于接收指令处理  
     uint8_t     i;
-	tBleStatus  ret;
-
+	
     //指令初级过滤  
     //--------------------------------------------------------------------------  
     //格式:<->[cmd bytes]<CRLF>  即"-[cmd bytes]\r\n"  
@@ -83,19 +82,7 @@ void Shell_BlueNRG_Central_Service(void)
     if(StrComp(ptRxd,"start scan"))    //开启扫描指令
     {
 		/* Start scan */
-		ret = aci_gap_start_general_discovery_proc(0x10, 0x10, 
-													 0x00, /* public address */
-													 0x00);
-		#ifdef Debug_BlueNRG_Scan
-		if (ret != BLE_STATUS_SUCCESS)
-		{
-			printf("start scan failed: 0x%x\n",ret);
-		}
-		else 
-		{
-			printf("start scan OK\n");  
-		}
-		#endif		
+		Start_Scan_Procedure();
     }
 	else if(StrComp(ptRxd,"stop scan"))  //停止扫描指令
     {

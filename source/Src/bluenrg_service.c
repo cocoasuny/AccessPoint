@@ -414,6 +414,7 @@ void HCI_Event_CB(void *pckt)
 				break;
 				case EVT_LE_ADVERTISING_REPORT:  //广播数据报告，可获取设备广播数据
 				{
+					//Central使用
 					le_advertising_info *pr = (void *)(evt->data+1); /* evt->data[0] is number of reports (On BlueNRG-MS is always 1) */
 
 					/* Add user code for decoding the le_advertising_info event data based on the specific pr->evt_type (ADV_IND, SCAN_RSP, ..)*/
@@ -426,18 +427,20 @@ void HCI_Event_CB(void *pckt)
 						RSSI is last octect (signed integer).
 					*/
 					#ifdef Debug_BlueNRG_Scan
-						printf("le advertising info:\r\n");
-						printf("Evt type:0x%x\r\n",pr->evt_type);
-						printf("Addr type:0x%x\r\n",pr->bdaddr_type);
-						printf("Addr:");
-						uint8_t i = 0;
-						for(i=0;i<6;i++)
-						{
-							printf("0x%x,",pr->bdaddr[i]);
-						}
-						printf("\r\n");
+//						printf("le advertising info:\r\n");
+//						printf("Evt type:0x%x\r\n",pr->evt_type);
+//						printf("Addr type:0x%x\r\n",pr->bdaddr_type);
+//						printf("Addr:");
+//						uint8_t i = 0;
+//						for(i=0;i<6;i++)
+//						{
+//							printf("0x%x,",pr->bdaddr[i]);
+//						}
+//						printf("\r\n");
 					#endif
-					
+						
+					//广播数据报告事件处理	
+					GAP_Scan_ADVData_CB(pr);
 				}
 				break;
 				default:break;
@@ -492,7 +495,7 @@ void HCI_Event_CB(void *pckt)
                 {
                     //Central设备
                     /* When the general discovery procedure is terminated */
-                    
+					
                     /* Get the evt_gap_procedure_complete event data */
                     //evt_gap_procedure_complete *pr = (void*)blue_evt->data; 
                     
@@ -502,6 +505,7 @@ void HCI_Event_CB(void *pckt)
                         pr->data[VARIABLE_SIZE]: procedure specific data, if applicable
                     */
                     //Discovert procedure terminate event handle
+					GAP_Discovery_CompleteCB();
                 }
                 default:break;
 			}

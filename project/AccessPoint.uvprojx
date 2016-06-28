@@ -365,7 +365,7 @@
               <MiscControls>--C99 --gnu</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F401xE,BLUENRG_MS,ENABLE_SPI_FIX</Define>
               <Undefine></Undefine>
-              <IncludePath>../source/Inc;../source/Drivers/STM32F4xx_HAL_Driver/Inc;../source/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../source/Middlewares/ST/STM32_USB_Device_Library/Core/Inc;../source/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc;../source/Drivers/CMSIS/Include;../source/Drivers/CMSIS/Device/ST/STM32F4xx/Include;../source/Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../source/Middlewares/Third_Party/FreeRTOS/Source/include;../source/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../source/Middlewares/Third_Party/FatFs/src/drivers;../source/Middlewares/Third_Party/FatFs/src;../source/Middlewares/ST/STM32_BlueNRG/SimpleBlueNRG_HCI/includes;../source/Drivers/Components;../source/Src/Shell</IncludePath>
+              <IncludePath>../source/Inc;../source/Drivers/STM32F4xx_HAL_Driver/Inc;../source/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../source/Middlewares/ST/STM32_USB_Device_Library/Core/Inc;../source/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc;../source/Drivers/CMSIS/Include;../source/Drivers/CMSIS/Device/ST/STM32F4xx/Include;../source/Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../source/Middlewares/Third_Party/FreeRTOS/Source/include;../source/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../source/Middlewares/Third_Party/FatFs/src/drivers;../source/Middlewares/Third_Party/FatFs/src;../source/Middlewares/ST/STM32_BlueNRG/SimpleBlueNRG_HCI/includes;../source/Drivers/Components;../source/Src/Shell;../source/Src/ble_Central</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -537,6 +537,16 @@
               <FileName>bsp_pressure.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\source\Src\bsp_pressure.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Ble_Central</GroupName>
+          <Files>
+            <File>
+              <FileName>ble_Central_Connect.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\source\Src\ble_Central\ble_Central_Connect.c</FilePath>
             </File>
           </Files>
         </Group>
