@@ -375,25 +375,44 @@ void HCI_Event_CB(void *pckt)
 
 	switch(event_pckt->evt)
 	{
-		case EVT_DISCONN_COMPLETE:
+		case EVT_DISCONN_COMPLETE:  /* BlueNRG disconnection event */
 		{
+            //蓝牙断开连接事件处理
 			GAP_DisconnectionComplete_CB();
 		}
 		break;
 
-		case EVT_LE_META_EVENT:
+		case EVT_LE_META_EVENT:  //main event
 		{
+            /* Get the meta event data */
 			evt_le_meta_event *evt = (void *)event_pckt->data;
 
+            /* Analyze the specific sub event */
 			switch(evt->subevent)
 			{
-				case EVT_LE_CONN_COMPLETE:
+				case EVT_LE_CONN_COMPLETE:  //蓝牙连接
 				{
+                    /* a new connection has been established, get the related data */
 					evt_le_connection_complete *cc = (void *)evt->data;
+                    
+                    /* Connection parameters:
+                        cc->status: connection status (0x00: Connection successfully completed); 
+                        cc->handle: connection handle to be used for the communication during 
+                                    the connection;
+                        cc->role: BLE device role (0x01: master; 0x02: slave);
+                        cc->peer_bdaddr_type: connected device address type (0x00: public; 
+                                    0x01: random);
+                        cc->peer_bdaddr: connected device address;
+                        cc->interval: connection interval;
+                        cc->latency: connection latency;
+                        cc->supervision_timeout: connection supervision timeout;
+                        cc->master_clock_accuracy: master clock accuracy;
+                     */
+                    //蓝牙连接事件处理
 					GAP_ConnectionComplete_CB(cc->peer_bdaddr, cc->handle);
 				}
 				break;
-				case EVT_LE_ADVERTISING_REPORT:
+				case EVT_LE_ADVERTISING_REPORT:  //广播数据报告，可获取设备广播数据
 				{
 					le_advertising_info *pr = (void *)(evt->data+1); /* evt->data[0] is number of reports (On BlueNRG-MS is always 1) */
 
@@ -426,27 +445,65 @@ void HCI_Event_CB(void *pckt)
 		}
 		break;
 
-		case EVT_VENDOR:
+		case EVT_VENDOR:  //main event
 		{
+            /* Get the vendor event data */
 			evt_blue_aci *blue_evt = (void*)event_pckt->data;
 			switch(blue_evt->ecode)
 			{
 				case EVT_BLUE_GATT_ATTRIBUTE_MODIFIED:         
 				{
-					/* this callback is invoked when a GATT attribute is modified
+                    //作为peripheral时，Central端修改属性时产生
+					/* this callback is invoked when a GATT attribute is modified by the client,
 					extract callback data and pass to suitable handler function */
 					
+                    /* Get attribute modification event data */
 					evt_gatt_attr_modified *evt = (evt_gatt_attr_modified*)blue_evt->data;
-					Attribute_Modified_CB(evt->attr_handle, evt->data_length, evt->att_data,evt->offset); 
+                    
+                    
+					Attribute_Modified_CB(evt->attr_handle,evt->data_length,evt->att_data,evt->offset); 
 				}
 				break; 
 
 				case EVT_BLUE_GATT_READ_PERMIT_REQ:
 				{
+                    //作为peripheral时，Central端读请求时产生
 					evt_gatt_read_permit_req *pr = (void*)blue_evt->data;                    
 					Read_Request_CB(pr->attr_handle);                    
 				}
+                break;
+                case EVT_BLUE_GATT_NOTIFICATION:
+                {
+                    //作为Central端，有notification事件时，产生
+                    /* Get attribute notification event data */ 
+                    //evt_gatt_attr_notification *evt = (evt_gatt_attr_notification*)blue_evt->data;
+                    
+                    /* notification event parameters:
+                        evt->conn_handle: the connection handle which notified the attribute;
+                        evt->event_data_length: length of attribute value + handle (2 bytes); 
+                        evt->attr_handle: attribute handle;
+                        evt->attr_value: pointer to attribute value (length is event_data_length – 2).   
+                    */
+                    
+                    //notification事件处理
+                }
 				break;
+                case EVT_BLUE_GAP_PROCEDURE_COMPLETE:  //Central设备发现设备完成事件
+                {
+                    //Central设备
+                    /* When the general discovery procedure is terminated */
+                    
+                    /* Get the evt_gap_procedure_complete event data */
+                    //evt_gap_procedure_complete *pr = (void*)blue_evt->data; 
+                    
+                    /* evt_gap_procedure_complete parameters:
+                        pr->procedure_code: terminated procedure code;
+                        pr->status: BLE_STATUS_SUCCESS, BLE_STATUS_FAILED or ERR_AUTH_FAILURE;
+                        pr->data[VARIABLE_SIZE]: procedure specific data, if applicable
+                    */
+                    //Discovert procedure terminate event handle
+                }
+                default:break;
 			}
 		}
 		break;
