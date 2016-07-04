@@ -36,6 +36,7 @@
 
 /* Typedefs -------------------------------------------------------------------*/
 BLE_DEVICE_LIST_INFO_T bleScanList[MAX_SUPPORT_SCAN_NBR];
+BLE_DIRECTCONNECT_PARAMT_T uxBleDirectConnectParamt;
 
 
 /* Private function declare ---------------------------------------------------*/
@@ -68,7 +69,101 @@ void Start_Scan_Procedure(void)
 	}
 	#endif		
 }
-
+/**
+ * @brief  Stop_Scan_Procedure,停止扫描设备
+ * @param  None
+ * @retval None
+ */
+tBleStatus Stop_Scan_Procedure(void)
+{
+	tBleStatus  ret;
+	
+	/* terminate gap procedure */
+	ret = aci_gap_terminate_gap_procedure(0x02); // GENERAL_DISCOVERY_PROCEDURE
+	
+	#ifdef Debug_BlueNRG_Scan
+	if (ret != BLE_STATUS_SUCCESS) 
+	{
+		printf("aci_gap_terminate_gap_procedure() failed: 0x%02x\n", ret);
+	}
+	else 
+	{
+		printf("aci_gap_terminate_gap_procedure() OK\n");
+	}
+	#endif
+	
+	return ret;
+}
+/**
+ * @brief  GAP_Central_Make_Connection,连接设备
+ * @param  None
+ * @retval None
+ */
+tBleStatus GAP_Central_Make_Connection(tBDAddr addr)
+{
+	tBleStatus ret;
+//	tBDAddr GAP_Peripheral_address = {0x12, 0x34, 0x00, 0xE1, 0x80, 0x02};
+	/* Start the direct connection establishment procedure to the GAP
+		peripheral device in general discoverable mode using the following
+		connection parameters:
+		Scan_Interval: 0x4000;
+		Scan_Window: 0x4000;
+		Peer_Address_Type: PUBLIC_ADDR (GAP peripheral address type: public
+		address);
+		Peer_Address: {0xaa, 0x00, 0x00, 0xE1, 0x80, 0x02};
+		Own_Address_Type: PUBLIC_ADDR (device address type);
+		Conn_Interval_Min: 40 (Minimum value for the connection event
+		interval);
+		Conn_Interval_Max: 40 (Maximum value for the connection event
+		interval);
+		Design an application using BlueNRG, BlueNRG-MS ACI APIs PM0237
+		60/99 DocID027104 Rev 4
+		Conn_Latency: 0 (Slave latency for the connection in a number of
+		connection events);
+		Supervision_Timeout: 60 (Supervision timeout for the LE Link);
+		Conn_Len_Min: 2000 (Minimum length of connection needed for the LE
+		connection);
+		Conn_Len_Max: 2000 (Maximum length of connection needed for the LE
+		connection).
+	*/
+	
+	ret = aci_gap_create_connection(0x4000, 0x4000, PUBLIC_ADDR,
+									addr, PUBLIC_ADDR, 40, 40, 0, 60, 2000 , 2000);
+	#ifdef Debug_BlueNRG_Scan						
+	if (ret != BLE_STATUS_SUCCESS) 
+	{
+		printf("aci_gap_create_connection Failed: 0x%02x\n\r\n",ret);
+	}
+	#endif
+	
+	return ret;
+}
+/**
+ * @brief  GAP_Central_Make_Disconnection,GAP Central断开设备连接
+ * @param  None
+ * @retval None
+ */
+tBleStatus GAP_Central_Make_Disconnection(void)
+{
+	tBleStatus  ret;
+	
+	/* terminate gap procedure */
+	ret = aci_gap_terminate_gap_procedure(0x10); // DIRECT_CONNECTION_ESTABLISHMENT_PROC
+	
+	#ifdef Debug_BlueNRG_Scan
+	printf("Disconnect :");
+	if (ret != BLE_STATUS_SUCCESS) 
+	{
+		printf("aci_gap_terminate_gap_procedure() failed: 0x%02x\n", ret);
+	}
+	else 
+	{
+		printf("aci_gap_terminate_gap_procedure() OK\n");
+	}
+	#endif
+	
+	return ret;
+}
 /**
  * @brief  GAP_Scan_ADVData_CB,处理Central端扫描结果数据
  * @param  *pdata

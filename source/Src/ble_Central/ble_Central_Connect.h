@@ -67,7 +67,25 @@ typedef struct
 	BLE_CONNECT_STATUS_T			ble_status;             //蓝牙连接状态	
 	bool                            isValid;                //设备列表是否可用，不可用，则加入到下一个位置
 }BLE_DEVICE_LIST_INFO_T;
- 
+
+				     
+/** 
+  * @brief  Ble device GAP Central direct connection establishment parameter structures defintion
+  */
+typedef struct
+{
+	uint16_t 		scanInterval;				//Scan Interval
+	uint16_t 		scanWindow;					//Scan Window
+	uint8_t 		peer_bdaddr_type;           //GAP peripheral address type
+	tBDAddr 		peer_bdaddr;                //Peer address
+	uint8_t 		own_bdaddr_type;            //Device address type
+	uint16_t 		conn_min_interval;          //Minimum value for the connection event interval
+	uint16_t 		conn_max_interval;          //Maximum value for the connection event interval
+	uint16_t 		conn_latency;               //Slave latency for the connection in a number of connection events
+	uint16_t 		pervision_timeout;          //Supervision timeout for the LE Link
+	uint16_t 		min_conn_length;            //Minimum length of connection needed for the LE connection
+	uint16_t 		max_conn_length;	        //Maximum length of connection needed for the LE connection
+}BLE_DIRECTCONNECT_PARAMT_T;
 
 
 /* Exported macro ------------------------------------------------------------*/
@@ -79,6 +97,9 @@ typedef struct
 void GAP_Scan_ADVData_CB(le_advertising_info *pdata);
 void GAP_Discovery_CompleteCB(void);
 void Start_Scan_Procedure(void);
+tBleStatus Stop_Scan_Procedure(void);
+tBleStatus GAP_Central_Make_Connection(tBDAddr addr);
+tBleStatus GAP_Central_Make_Disconnection(void);
 
 
 #endif /* __BLE_CENTRAL_CONNECT_H_ */
