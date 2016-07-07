@@ -99,7 +99,7 @@ void GAP_Discovery_CompleteCB(void);
 void Start_Scan_Procedure(void);
 tBleStatus Stop_Scan_Procedure(void);
 tBleStatus GAP_Central_Make_Connection(tBDAddr addr);
-tBleStatus GAP_Central_Make_Disconnection(void);
+tBleStatus GAP_Central_Make_Disconnection(uint16_t conn_handle);
 
 
 #endif /* __BLE_CENTRAL_CONNECT_H_ */

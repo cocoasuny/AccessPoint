@@ -81,6 +81,7 @@ typedef enum
 
 
 extern uint8_t g_tx_power_level;
+extern volatile uint16_t connection_handle;
 
 
 void BlueNRG_Init(void);

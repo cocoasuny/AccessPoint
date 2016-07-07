@@ -63,8 +63,8 @@ typedef enum
 #define HCI_PIN_OR_KEY_MISSING                  0x06
 #define HCI_MEMORY_FULL                         0x07
 #define HCI_CONNECTION_TIMEOUT                  0x08
-#define HCI_MAX_NUMBER_OF_CONNECTIONS		0x09
-#define HCI_MAX_NUMBER_OF_SCO_CONNECTIONS	0x0a
+#define HCI_MAX_NUMBER_OF_CONNECTIONS		    0x09
+#define HCI_MAX_NUMBER_OF_SCO_CONNECTIONS	    0x0a
 #define HCI_ACL_CONNECTION_EXISTS               0x0b
 #define HCI_COMMAND_DISALLOWED                  0x0c
 #define HCI_REJECTED_LIMITED_RESOURCES          0x0d

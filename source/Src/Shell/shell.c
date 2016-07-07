@@ -67,8 +67,7 @@ const char Shell_HelpMsg[] =
 	"Pls Enter [ModuleName help] for more info\r\n"
 	"Available Shell Modules:\r\n"
 	"  rtc\r\n"
-	"  ble central\r\n"
-	"\r\n";
+	"  ble central\r\n";
 
 /**
   * @brief  Shell串口初始化,使用中断单字节接收数据 
@@ -223,7 +222,7 @@ void Shell_Invalid_Service(void)
         if(2 == shell_rx_rdy)
         {
             //填写数据  
-            tx_len = (uint16_t)sprintf((void *)tmp_buff,"\r\nAT:OK!\r\n");
+            tx_len = (uint16_t)sprintf((void *)tmp_buff,"AT:OK!\r\n");
         
             //发送数据 
             printf("%s\r\n",tmp_buff);

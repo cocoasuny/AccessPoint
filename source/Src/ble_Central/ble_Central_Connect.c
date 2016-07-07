@@ -143,22 +143,22 @@ tBleStatus GAP_Central_Make_Connection(tBDAddr addr)
  * @param  None
  * @retval None
  */
-tBleStatus GAP_Central_Make_Disconnection(void)
+tBleStatus GAP_Central_Make_Disconnection(uint16_t conn_handle)
 {
 	tBleStatus  ret;
 	
 	/* terminate gap procedure */
-	ret = aci_gap_terminate_gap_procedure(0x10); // DIRECT_CONNECTION_ESTABLISHMENT_PROC
+	ret = aci_gap_terminate(conn_handle,HCI_OE_USER_ENDED_CONNECTION); // Disconnect the peer device
 	
 	#ifdef Debug_BlueNRG_Scan
 	printf("Disconnect :");
 	if (ret != BLE_STATUS_SUCCESS) 
 	{
-		printf("aci_gap_terminate_gap_procedure() failed: 0x%02x\n", ret);
+		printf("aci_gap_terminate failed: 0x%02x\r\n", ret);
 	}
 	else 
 	{
-		printf("aci_gap_terminate_gap_procedure() OK\n");
+		printf("aci_gap_terminate  OK\r\n");
 	}
 	#endif
 	

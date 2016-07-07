@@ -112,7 +112,7 @@ void Shell_BlueNRG_Central_Service(void)
 	else if (StrComp(ptRxd,"disconn"))  //断开连接设备指令
 	{
 		/* Disconnect device */
-		GAP_Central_Make_Disconnection();
+		GAP_Central_Make_Disconnection(connection_handle);
 	}
     else if(StrComp(ptRxd,"help\r\n"))      //
     {
