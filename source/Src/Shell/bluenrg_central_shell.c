@@ -41,6 +41,7 @@ const char BlueNRGCentral_HelpMsg[] =
 	" ble central stop scan\r\n"
 	" ble central connmac <add1>,<add2>,<add3>,<add4>,<add5>,<add6>\r\n"
 	" ble central disconn\r\n"
+	" ble central dscryservs\r\n"
 	"\r\n";
 	
 /****************************************************************************** 
@@ -113,6 +114,11 @@ void Shell_BlueNRG_Central_Service(void)
 	{
 		/* Disconnect device */
 		GAP_Central_Make_Disconnection(connection_handle);
+	}
+	else if(StrComp(ptRxd,"dscryservs"))  //发现服务指令
+	{
+		/* Discovery services */
+		GAP_Discovery_Service(connection_handle);
 	}
     else if(StrComp(ptRxd,"help\r\n"))      //
     {

@@ -441,7 +441,6 @@ void HCI_Event_CB(void *pckt)
 //						}
 //						printf("\r\n");
 					#endif
-						
 					//广播数据报告事件处理	
 					GAP_Scan_ADVData_CB(pr);
 				}
@@ -457,6 +456,26 @@ void HCI_Event_CB(void *pckt)
 			evt_blue_aci *blue_evt = (void*)event_pckt->data;
 			switch(blue_evt->ecode)
 			{
+				case EVT_BLUE_ATT_READ_BY_GROUP_TYPE_RESP: 
+				{
+					//作为Central时，发现peripheral端服务时产生
+					/* The responses of the procedure started by aci_gatt_find_included_services() &
+						aci_gatt_disc_all_prim_services() */
+					evt_att_read_by_group_resp *pr = (void*)blue_evt->data;
+					
+					/* evt_att_read_by_group_resp parameters:
+						pr->conn_handle: connection handle;
+						pr->event_data_length: total length of the event data;
+						pr->attribute_data_length: length of each specific data within the
+						attribute_data_list[];
+						pr->attribute_data_list[]: event data.
+					*/
+					/* Add user code for decoding the pr->attribute_data_list[] and getting
+					   the services handle, end group handle and service uuid */
+					GAP_Discovery_Service_CB(pr);
+				}
+				break;
+				
 				case EVT_BLUE_GATT_ATTRIBUTE_MODIFIED:         
 				{
                     //作为peripheral时，Central端修改属性时产生
@@ -492,6 +511,7 @@ void HCI_Event_CB(void *pckt)
                     */
                     
                     //notification事件处理
+					printf("Notic\r\n");
                 }
 				break;
                 case EVT_BLUE_GAP_PROCEDURE_COMPLETE:  //Central设备发现设备完成事件

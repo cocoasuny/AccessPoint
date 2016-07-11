@@ -55,7 +55,7 @@ uint16_t envSensServHandle, tempCharHandle, pressCharHandle, humidityCharHandle;
 
 /*******************************************************************************
 * Function Name  : Add_Acc_Service
-* Description    : Ìí¼ÓÈıÖá´«¸ĞÆ÷·şÎñ
+* Description    : æ·»åŠ ä¸‰è½´ä¼ æ„Ÿå™¨æœåŠ¡
 * Input          : None
 * Output         : None
 * Return         : None

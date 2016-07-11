@@ -165,6 +165,63 @@ tBleStatus GAP_Central_Make_Disconnection(uint16_t conn_handle)
 	return ret;
 }
 /**
+ * @brief  GAP_Discovery_Service,找到当前连接所包含的Service
+ * @param  conn_handle
+ * @retval status
+ */
+tBleStatus GAP_Discovery_Service(uint16_t conn_handle)
+{
+	tBleStatus ret;
+	
+	/* discover all primary services on the server */
+	ret = aci_gatt_disc_all_prim_services(conn_handle);
+	
+	#ifdef Debug_BlueNRG_Scan
+	printf("Discovery Service :");
+	if (ret != BLE_STATUS_SUCCESS) 
+	{
+		printf("aci_gatt_disc_all_prim_services failed: 0x%02x\r\n", ret);
+	}
+	else 
+	{
+		printf("aci_gatt_disc_all_prim_services  OK\r\n");
+	}
+	#endif
+	
+	return ret;	
+}
+/**
+ * @brief  GAP_Discovery_Service_CB,找到当前连接所包含的Service cb
+ * @param  *pdata
+ * @retval void
+ */
+void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata)
+{
+	/* evt_att_read_by_group_resp parameters:
+		pr->conn_handle: connection handle;
+		pr->event_data_length: total length of the event data;
+		pr->attribute_data_length: length of each specific data within the
+		attribute_data_list[];
+		pr->attribute_data_list[]: event data.
+		   *  A list of Attribute Data where the attribute data is composed by:
+		   *  @li 2 octets for Attribute Handle
+		   *  @li 2 octets for End Group Handle
+		   *  @li (attribute_data_length - 4) octets for Attribute Value
+	*/
+	
+	/* for debug */
+	printf("\r\nDiscovery Services\r\n");
+	printf("    conn_handle:0x%04x\r\n",pdata->conn_handle);
+	printf("	event_data_length:%d\r\n",pdata->event_data_length);
+	printf("	attribute_data_length:%d\r\n",pdata->attribute_data_length);
+	
+	//判断该服务属于哪个Connect
+	if(pdata->conn_handle == connection_handle)
+	{
+		
+	}
+}
+/**
  * @brief  GAP_Scan_ADVData_CB,处理Central端扫描结果数据
  * @param  *pdata
  * @retval None

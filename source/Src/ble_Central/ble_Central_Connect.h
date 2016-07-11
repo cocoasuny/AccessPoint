@@ -100,7 +100,8 @@ void Start_Scan_Procedure(void);
 tBleStatus Stop_Scan_Procedure(void);
 tBleStatus GAP_Central_Make_Connection(tBDAddr addr);
 tBleStatus GAP_Central_Make_Disconnection(uint16_t conn_handle);
-
+tBleStatus GAP_Discovery_Service(uint16_t conn_handle);
+void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata);
 
 #endif /* __BLE_CENTRAL_CONNECT_H_ */
 
