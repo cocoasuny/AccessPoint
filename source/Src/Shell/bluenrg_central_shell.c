@@ -36,12 +36,12 @@
 //命令帮助文件
 const char BlueNRGCentral_HelpMsg[] =
 	"[BlueNRGCentral contorls]\r\n"
-	" ble central help\t\t- help.\r\n"
-	" ble central start scan\r\n"
-	" ble central stop scan\r\n"
-	" ble central connmac <add1>,<add2>,<add3>,<add4>,<add5>,<add6>\r\n"
-	" ble central disconn\r\n"
-	" ble central dscryservs\r\n"
+	" ble help\t\t- help.\r\n"
+	" ble start scan   - ble central start scan\r\n"
+	" ble stop scan    - ble central stop scan\r\n"
+	" ble connmac <add1>,<add2>,<add3>,<add4>,<add5>,<add6>\r\n"
+	" ble disconn - ble central disconnect device\r\n"
+	" ble discs - ble central discovery service\r\n"
 	"\r\n";
 	
 /****************************************************************************** 
@@ -70,12 +70,8 @@ void Shell_BlueNRG_Central_Service(void)
     
     //长度和前缀过滤 
     ptRxd = (uint8_t *)shell_rx_buff;
-    if( (' ' != shell_rx_buff[3]) || ('b' != shell_rx_buff[0]) || (i < 14) || 
-        ('l' != shell_rx_buff[1]) || ('e' != shell_rx_buff[2]) ||
-		('c' != shell_rx_buff[4]) || ('e' != shell_rx_buff[5]) ||
-		('n' != shell_rx_buff[6]) || ('t' != shell_rx_buff[7]) || 
-		('r' != shell_rx_buff[8]) || ('a' != shell_rx_buff[9]) ||
-		('l' != shell_rx_buff[10]) || (' ' != shell_rx_buff[11]) 
+    if( (' ' != shell_rx_buff[3]) || ('b' != shell_rx_buff[0]) || (i < 6) || 
+        ('l' != shell_rx_buff[1]) || ('e' != shell_rx_buff[2]) 
 	)  
 	{
 		return;
@@ -83,7 +79,7 @@ void Shell_BlueNRG_Central_Service(void)
 
     //处理指令
     //--------------------------------------------------------------------------
-    ptRxd += 12;
+    ptRxd += 4;
     if(StrComp(ptRxd,"start scan"))    //开启扫描指令
     {
 		/* Start scan */
@@ -115,7 +111,7 @@ void Shell_BlueNRG_Central_Service(void)
 		/* Disconnect device */
 		GAP_Central_Make_Disconnection(connection_handle);
 	}
-	else if(StrComp(ptRxd,"dscryservs"))  //发现服务指令
+	else if(StrComp(ptRxd,"discs"))  //发现服务指令
 	{
 		/* Discovery services */
 		GAP_Discovery_Service(connection_handle);

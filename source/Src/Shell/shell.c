@@ -64,10 +64,14 @@ static volatile uint16_t    shell_rx_index = 0;           //数据接收标记
 
 //命令帮助文件,显示所有可用Shell模块
 const char Shell_HelpMsg[] =
-	"Pls Enter [ModuleName help] for more info\r\n"
-	"Available Shell Modules:\r\n"
-	"  rtc\r\n"
-	"  ble central\r\n";
+	"================================================================\r\n"
+    "*                                                              *\r\n"
+	"*      Please Enter [ModuleName help] for more info            *\r\n" 
+	"*      Available Shell Modules:                                *\r\n"
+	"*      rtc                                                     *\r\n"
+	"*      ble                                                     *\r\n"
+	"================================================================\r\n"
+	"\r\n";
 
 /**
   * @brief  Shell串口初始化,使用中断单字节接收数据 
@@ -222,7 +226,7 @@ void Shell_Invalid_Service(void)
         if(2 == shell_rx_rdy)
         {
             //填写数据  
-            tx_len = (uint16_t)sprintf((void *)tmp_buff,"AT:OK!\r\n");
+            tx_len = (uint16_t)sprintf((void *)tmp_buff,"AT:OK!");
         
             //发送数据 
             printf("%s\r\n",tmp_buff);
@@ -238,7 +242,7 @@ void Shell_Invalid_Service(void)
     {
 ERROR_LOOP:
         //填写指令码
-        tx_len = (uint16_t)sprintf((void *)tmp_buff,"\r\nAT: Cmd Error:\t\"");
+        tx_len = (uint16_t)sprintf((void *)tmp_buff,"\r\nAT: Cmd Error:\"");
         
         //计算地址,填写数据,填写尾部 
         ptDst = tmp_buff + tx_len;
@@ -280,6 +284,7 @@ ERROR_LOOP:
     //清除数据返回程序  
     shell_rx_buff[0]  = 0;
     shell_rx_rdy      = 0;
+	printf("-->");
 }
 
 /****************************************************************************** 

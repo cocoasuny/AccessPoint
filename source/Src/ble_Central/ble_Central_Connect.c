@@ -65,7 +65,7 @@ void Start_Scan_Procedure(void)
 	}
 	else 
 	{
-		printf("start scan OK\n");  
+		printf("start scaning\n");  
 	}
 	#endif		
 }
@@ -284,10 +284,10 @@ void GAP_Discovery_CompleteCB(void)
 	
 	validDevNum = i++;	
 
-	LOG("Scan Dev(%d):  ID  MAC                       	Status  RSSI\r\n",validDevNum);
+	LOG("Scan Dev(%d):  ID  MAC                       	  Status  RSSI\r\n",validDevNum);
 	for(i=0;i<validDevNum;i++)
 	{	
-		LOG("**************%d,  0x%x 0x%x 0x%x 0x%x 0x%x 0x%x    %d      %d\r\n",
+		LOG("              %d,  0x%x 0x%x 0x%x 0x%x 0x%x 0x%x    %d      %d\r\n",
 				i,bleScanList[i].bdaddr[0],bleScanList[i].bdaddr[1],bleScanList[i].bdaddr[2],
 				bleScanList[i].bdaddr[3],bleScanList[i].bdaddr[4],bleScanList[i].bdaddr[5],
 				bleScanList[i].ble_status,bleScanList[i].data_RSSI[0]					
