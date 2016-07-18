@@ -210,7 +210,7 @@ void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata)
 	*/
 	
 	/* for debug */
-	printf("\r\nDiscovery Services\r\n");
+	printf("\r\nDiscovery Services:\r\n");
 	printf("    conn_handle:0x%04x\r\n",pdata->conn_handle);
 	printf("	event_data_length:%d\r\n",pdata->event_data_length);
 	printf("	attribute_data_length:%d\r\n",pdata->attribute_data_length);

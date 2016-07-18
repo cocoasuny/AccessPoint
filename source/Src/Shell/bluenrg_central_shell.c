@@ -92,7 +92,7 @@ void Shell_BlueNRG_Central_Service(void)
     }
 	else if(StrComp(ptRxd,"connmac "))   //连接设备指令
 	{
-		retval = sscanf((void*)shell_rx_buff,"%*s%*s%*s%x,%x,%x,%x,%x,%x",(int *)&add[0],(int *)&add[1],(int *)&add[2],
+		retval = sscanf((void*)shell_rx_buff,"%*s%*s%x,%x,%x,%x,%x,%x",(int *)&add[0],(int *)&add[1],(int *)&add[2],
 														   (int *)&add[3],(int *)&add[4],(int *)&add[5]);  
         if(6 != retval)
 		{
