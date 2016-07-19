@@ -538,6 +538,11 @@
               <FileType>1</FileType>
               <FilePath>..\source\Src\bsp_pressure.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_rtc_calendar.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\source\Src\bsp_rtc_calendar.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

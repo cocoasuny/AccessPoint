@@ -102,6 +102,7 @@ void Bsp_Init(void)
     MX_USART1_UART_Init();   //for debug & shell
 	MX_USART2_UART_Init();   //ANO地面站使用
     MX_SDIO_SD_Init();
+    BSP_RTC_Calendar_Init();
     
     /* init code for USB_DEVICE */
     MX_USB_DEVICE_Init();
@@ -119,6 +120,7 @@ void Bsp_Init(void)
         HAL_Delay(5000);
     #endif
     LOG("Start...\r\n");
+    printf("Please Enter The Current time\r\n");
 	#ifdef SHELL_ENABLE
 		LOG("pls enter help for more usages\r\n");
 	#endif

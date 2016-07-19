@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    main.h
+  * @file    bsp_rtc_calendar.h
   * @author  CL
   * @version V1.0.0
   * @date    04-July-2014
@@ -36,40 +36,32 @@
   */ 
   
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H_
-#define __MAIN_H_
+#ifndef __BSP_RTC_CALENDAR_H_
+#define __BSP_RTC_CALENDAR_H_
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-#include "fatfs.h"
-#include "cmsis_os.h"
-#include "usb_device.h"
-#include "bsp.h"
-#include "platform.h"
-#include "bluenrg_interface.h"
-#include "hci.h"
-#include "bluenrg_utils.h"
-#include "bluenrg_service.h"
-#include "freertostask.h"
-#include "bluenrg_sensor_service.h"
-#include "bluenrg_remotecontrol_service.h"
-#include "global_typedef.h"
-#include "ANO_DT.h"
-#include "shell.h"
-#include "ble_Central_Connect.h"
-#include "bsp_rtc_calendar.h"
 
-extern volatile AxesRaw_t  g_Acc;         //加速度传感器数据
-extern volatile AxesRaw_t  g_Gyro;        //陀螺仪传感器数据
-extern volatile AxesRaw_t  g_Mag;         //地磁传感器数据
-extern volatile Attitude_t g_AttitudeInfo;  //姿态信息
-extern uint16_t g_LedFlashTime;
-extern uint8_t  g_aRxBuffer[RXBUFFERSIZE];;
+/* type define */
+/* Week Structure definition */
+typedef struct _week_t
+{
+  uint8_t u8WkNum;
+  uint8_t u8DayNum;
+  uint8_t u8WkDayNum;
+}week_str_typedef;
 
-void MX_GPIO_Init(void);
-void MX_SDIO_SD_Init(void);
+
+/* Defines related to Clock configuration */    
+#define RTC_ASYNCH_PREDIV  0x7F   /* LSE as RTC clock */
+#define RTC_SYNCH_PREDIV   0x00FF /* LSE as RTC clock */
+
+void BSP_RTC_Calendar_Init(void);
+void Calendar_Get(RTC_DateTypeDef *date_s,RTC_TimeTypeDef *rtc_time);
+void Calendar_Set(RTC_DateTypeDef *date_s,RTC_TimeTypeDef *rtc_time);
 
 
 
-#endif /* __MAIN_H_ */
+
+#endif /* __BSP_RTC_CALENDAR_H_ */
 

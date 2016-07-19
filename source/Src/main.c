@@ -39,7 +39,7 @@ volatile AxesRaw_t  g_Acc;         //加速度传感器数据
 volatile AxesRaw_t  g_Gyro;        //陀螺仪传感器数据
 volatile AxesRaw_t  g_Mag;         //地磁传感器数据
 volatile Attitude_t g_AttitudeInfo;  //姿态信息
-uint16_t g_LedFlashTime = 100;
+uint16_t g_LedFlashTime = 500;
 uint8_t  g_aRxBuffer[RXBUFFERSIZE] = {0};
 ;
 /* Private variables ---------------------------------------------------------*/
@@ -134,6 +134,9 @@ int main(void)
 *******************************************************************************/
 void LedCtlTask(void *pvParameters)
 {
+//    RTC_DateTypeDef date_s;
+//    RTC_TimeTypeDef rtc_time;
+    
     BSP_LED_Init();     //Led GPIO Init
     
     while(1)
@@ -147,6 +150,13 @@ void LedCtlTask(void *pvParameters)
 //        g_Axes_data.AXIS_Y += 100;
 //        g_Axes_data.AXIS_Z += 100;
 //        BlueNRG_Update_Acc((AxesRaw_t*)&g_Axes_data);
+        
+//        Calendar_Get(&date_s,&rtc_time);
+//        printf("\r\nThe current date is :  %02d-%02d-%02d",
+//                date_s.Month, date_s.Date, 2000 + date_s.Year);
+//        printf("\r\nThe current time is :  %0.2d:%0.2d:%0.2d\r\n", 
+//                rtc_time.Hours, rtc_time.Minutes, rtc_time.Seconds);
+        
         vTaskDelay(g_LedFlashTime);     //控制LDE闪烁频率
     }
 }

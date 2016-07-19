@@ -37,10 +37,10 @@
 const char RTC_HelpMsg[] =
 	"[RTC contorls]\r\n"
 	" rtc help\t\t- help.\r\n"
-	" rtc rd info\t\t- Read RTC info.\r\n"
+	" rtc rd info\t\t- Read RTC info in gather time.\r\n"
 	" rtc rd time\t\t- Read RTC date and time.\r\n"
-	" rtc wr time <Hour>:<Minute>:<Second>    - Write time.\r\n"
-	" rtc wr date <Year>-<Month>-<Day> <Week> - Warning Week=[1..7]\r\n"
+	" rtc wr time <Hour>:<Minute>:<Second>  - Not use.\r\n"
+	" rtc wr date <Year>-<Month>-<Day>  <Hour>:<Minute>:<Second>  - Write date and time r\n"
 	"\r\n";
 	
 /****************************************************************************** 
@@ -64,9 +64,11 @@ void Shell_RTC_Service(void)
 	int         Year = 0;
 	int         Mon  = 0;
 	int         Date = 0;
-	int         Week = 0;
     uint8_t     arg[32];
 	uint16_t    retval; 
+    
+    RTC_DateTypeDef date_s;
+    RTC_TimeTypeDef rtc_time;
 
     //指令初级过滤  
     //--------------------------------------------------------------------------  
@@ -85,15 +87,17 @@ void Shell_RTC_Service(void)
     ptRxd += 4;
     if(StrComp(ptRxd,"rd time"))    //按包读取指令
     {
-        printf("Time:%s\r\n",arg); 
+        Calendar_Get(&date_s,&rtc_time);
+        printf("\r\nRTC:  %02d-%02d-%02d %d %0.2d:%0.2d:%0.2d\r\n",2000 + date_s.Year,date_s.Month, date_s.Date,date_s.WeekDay, 
+                                                               rtc_time.Hours, rtc_time.Minutes, rtc_time.Seconds); 
     }
     else if(StrComp(ptRxd,"rd info\r\n"))      //读取RTC信息
     {
-           
+        printf("Time:%s\r\n",arg);
     }
     else if(StrComp(ptRxd,"wr time "))      //
     {
-		retval = sscanf((void*)shell_rx_buff,"%*s%*s%*s%d:%d:%d",&Hour,&Min,&Sec);  
+		retval = sscanf((void*)shell_rx_buff,"%*s%*s%*s%d:%d:%d %d-%d-%d",&Hour,&Min,&Sec,&Year,&Mon,&Date);  
         if(3 != retval)
 		{
 			return;   //没有接收到3个输入数据,直接退出  
@@ -105,14 +109,23 @@ void Shell_RTC_Service(void)
     }
     else if(StrComp(ptRxd,"wr date "))      //
     {
-		retval = sscanf((void*)shell_rx_buff,"%*s%*s%*s%d-%d-%d %d",&Year,&Mon,&Date,&Week);  
-		if(4 != retval)
+		retval = sscanf((void*)shell_rx_buff,"%*s%*s%*s%d-%d-%d %d:%d:%d",&Year,&Mon,&Date,&Hour,&Min,&Sec);  
+		if(6 != retval)
 		{
 			return;   //没有接收到4个输入数据,直接退出 
 		}
 		else
 		{
-			printf("Set Date:%d-%d-%d %d\r\n",Year,Mon,Date,Week);
+			printf("Set Date:%d-%d-%d %d:%d:%d\r\n",Year,Mon,Date,Hour,Min,Sec);
+            date_s.Year = (uint8_t)(Year % 100);
+            date_s.Month = (uint8_t)Mon;
+            date_s.Date = (uint8_t)Date;
+            
+            rtc_time.Hours = (uint8_t)Hour;
+            rtc_time.Minutes = (uint8_t)Min;
+            rtc_time.Seconds = (uint8_t)Sec;
+           
+            Calendar_Set(&date_s,&rtc_time);
 		}
     }
     else if(StrComp(ptRxd,"help\r\n"))      //
