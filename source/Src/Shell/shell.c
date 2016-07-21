@@ -213,6 +213,8 @@ void Shell_Invalid_Service(void)
     uint8_t *   ptSrc;
     uint8_t *   ptDst;
     uint8_t     tmp_buff[64];
+	RTC_DateTypeDef date_s;
+    RTC_TimeTypeDef rtc_time;
     
     //指令识别  
     if(2 > shell_rx_rdy)
@@ -235,6 +237,13 @@ void Shell_Invalid_Service(void)
 		{
 			//显示所有可用Shell Module
 			printf("%s",Shell_HelpMsg);
+		}
+		else if(StrComp(ptSrc,"the time\r\n"))
+		{
+			//显示RTC时间
+			Calendar_Get(&date_s,&rtc_time);
+			printf("\r\nRTC:  %02d-%02d-%02d %d %0.2d:%0.2d:%0.2d\r\n",2000 + date_s.Year,date_s.Month, date_s.Date,date_s.WeekDay, 
+                                                               rtc_time.Hours, rtc_time.Minutes, rtc_time.Seconds); 
 		}
         else goto ERROR_LOOP;
     }

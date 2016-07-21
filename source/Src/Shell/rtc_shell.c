@@ -40,7 +40,7 @@ const char RTC_HelpMsg[] =
 	" rtc rd info\t\t- Read RTC info in gather time.\r\n"
 	" rtc rd time\t\t- Read RTC date and time.\r\n"
 	" rtc wr time <Hour>:<Minute>:<Second>  - Not use.\r\n"
-	" rtc wr date <Year>-<Month>-<Day>  <Hour>:<Minute>:<Second>  - Write date and time r\n"
+	" rtc wr date <Year>-<Month>-<Day>  <Hour>:<Minute>:<Second>  - Write date and time \r\n"
 	"\r\n";
 	
 /****************************************************************************** 
