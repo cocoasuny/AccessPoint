@@ -45,10 +45,20 @@ FIL  MyFile;     /* File object */
 
 void MX_FATFS_Init(void) 
 {
+	SD_CardInfo CardInfo;
+
+	MX_SDIO_SD_Init();
+	
     /*## FatFS: Link the SD driver ###########################*/
     retSD = FATFS_LinkDriver(&SD_Driver, SDPath);
 
-    FatFS_Test();
+//    FatFS_Test();
+	BSP_SD_GetCardInfo(&CardInfo);
+	printf("SD Card info:\r\n");
+	printf("Card ManufacturerID:%d\r\n",CardInfo.SD_cid.ManufacturerID);	//制造商ID
+	printf("Card RCA:%d\r\n",CardInfo.RCA);								//卡相对地址
+	printf("Card Capacity:%d MB\r\n",(uint32_t)(CardInfo.CardCapacity>>20));	//显示容量
+	printf("Card BlockSize:%d\r\n\r\n",CardInfo.CardBlockSize);			//显示块大小	
 }
 
 /**

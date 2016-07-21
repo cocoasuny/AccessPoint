@@ -101,7 +101,6 @@ void Bsp_Init(void)
     MX_GPIO_Init();
     MX_USART1_UART_Init();   //for debug & shell
 	MX_USART2_UART_Init();   //ANO地面站使用
-    MX_SDIO_SD_Init();
     BSP_RTC_Calendar_Init();
     
     /* init code for USB_DEVICE */
