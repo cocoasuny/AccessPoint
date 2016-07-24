@@ -99,6 +99,7 @@ void BSP_SD_DMA_Rx_IRQHandler(void);
 HAL_SD_TransferStateTypedef BSP_SD_GetStatus(void);
 void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypedef *CardInfo);
 uint8_t BSP_SD_IsDetected(void);
+void MX_SDIO_SD_Init(void);
 
 /* USER CODE END 0 */ 
 

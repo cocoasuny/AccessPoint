@@ -105,20 +105,20 @@ void Bsp_Init(void)
     
     /* init code for USB_DEVICE */
     MX_USB_DEVICE_Init();
-
-    /* init code for FATFS */
-    MX_FATFS_Init();  
     
     /* init code for humidity & temperature sensor */
     BSP_HUM_TEMP_Init();
     
     /* init code for pressure sensor */
     BSP_PRESSURE_Init();
+ 
+    /* init code for FATFS */
+    MX_FATFS_Init();
     
     #ifndef PRINTFLOG
         HAL_Delay(5000);
     #endif
-    LOG("Start...\r\n");
+    LOG("BSP Init Complate,Start...\r\n");
     printf("Please Enter The Current time\r\n");
 	#ifdef SHELL_ENABLE
 		LOG("pls enter help for more usages\r\n");

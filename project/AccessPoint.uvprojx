@@ -494,6 +494,11 @@
               <FilePath>..\source\Inc\platform.h</FilePath>
             </File>
             <File>
+              <FileName>FreeRTOSConfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\source\Inc\FreeRTOSConfig.h</FilePath>
+            </File>
+            <File>
               <FileName>stm32f4xx_hal_conf.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\source\Inc\stm32f4xx_hal_conf.h</FilePath>
@@ -1032,6 +1037,11 @@
               <FileName>ff_gen_drv.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\source\Middlewares\Third_Party\FatFs\src\ff_gen_drv.c</FilePath>
+            </File>
+            <File>
+              <FileName>unicode.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\source\Middlewares\Third_Party\FatFs\src\option\unicode.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -22,9 +22,9 @@ int ff_cre_syncobj (	/* TRUE:Function succeeded, FALSE:Could not create due to a
 {
   int ret;
   
-  osSemaphoreDef(SEM);
-  *sobj = osSemaphoreCreate(osSemaphore(SEM), 1);		
-  ret = (*sobj != NULL);
+  *sobj = xSemaphoreCreateMutex();	/* FreeRTOS */
+  ret = (int)(*sobj != NULL);
+
   
   return ret;
 }
@@ -43,8 +43,12 @@ int ff_del_syncobj (	/* TRUE:Function succeeded, FALSE:Could not delete due to a
 	_SYNC_t sobj		/* Sync object tied to the logical drive to be deleted */
 )
 {
-  osSemaphoreDelete (sobj);
-  return 1;
+  int ret;
+    
+  vSemaphoreDelete(sobj);		/* FreeRTOS */
+  ret = 1;
+  
+  return ret;  
 }
 
 
@@ -62,10 +66,7 @@ int ff_req_grant (	/* TRUE:Got a grant to access the volume, FALSE:Could not get
 {
   int ret = 0;
   
-  if(osSemaphoreWait(sobj, _FS_TIMEOUT) == osOK)
-  {
-    ret = 1;
-  }
+  ret = (int)(xSemaphoreTake(sobj, _FS_TIMEOUT) == pdTRUE);	/* FreeRTOS */
   
   return ret;
 }
@@ -82,7 +83,7 @@ void ff_rel_grant (
 	_SYNC_t sobj	/* Sync object to be signaled */
 )
 {
-  osSemaphoreRelease(sobj);
+  xSemaphoreGive(sobj);	/* FreeRTOS */
 }
 
 #endif

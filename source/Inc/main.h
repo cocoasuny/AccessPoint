@@ -67,7 +67,6 @@ extern uint16_t g_LedFlashTime;
 extern uint8_t  g_aRxBuffer[RXBUFFERSIZE];;
 
 void MX_GPIO_Init(void);
-void MX_SDIO_SD_Init(void);
 
 
 
