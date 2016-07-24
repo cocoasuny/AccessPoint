@@ -33,6 +33,7 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include "bsp_driver_sd.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -68,44 +69,96 @@ void HAL_MspInit(void)
 
 void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
 {
-
-  GPIO_InitTypeDef GPIO_InitStruct;
-  if(hsd->Instance==SDIO)
-  {
-  /* USER CODE BEGIN SDIO_MspInit 0 */
-
-  /* USER CODE END SDIO_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_SDIO_CLK_ENABLE();
+  static DMA_HandleTypeDef dmaRxHandle;
+  static DMA_HandleTypeDef dmaTxHandle;
+  GPIO_InitTypeDef GPIO_Init_Structure;
   
-    /**SDIO GPIO Configuration    
-    PC8     ------> SDIO_D0
-    PC9     ------> SDIO_D1
-    PC10     ------> SDIO_D2
-    PC11     ------> SDIO_D3
-    PC12     ------> SDIO_CK
-    PD2     ------> SDIO_CMD 
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11 
-                          |GPIO_PIN_12;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF12_SDIO;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  /* Enable SDIO clock */
+  __SDIO_CLK_ENABLE();
+  
+  /* Enable DMA2 clocks */
+  __DMAx_TxRx_CLK_ENABLE();
 
-    GPIO_InitStruct.Pin = GPIO_PIN_2;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF12_SDIO;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+  /* Enable GPIOs clock */
+  __GPIOC_CLK_ENABLE();
+  __GPIOD_CLK_ENABLE();
+  
+  /* Common GPIO configuration */
+  GPIO_Init_Structure.Mode      = GPIO_MODE_AF_PP;
+  GPIO_Init_Structure.Pull      = GPIO_PULLUP;
+  GPIO_Init_Structure.Speed     = GPIO_SPEED_HIGH;
+  GPIO_Init_Structure.Alternate = GPIO_AF12_SDIO;
+  
+  /* GPIOC configuration */
+  GPIO_Init_Structure.Pin = GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12;
+   
+  HAL_GPIO_Init(GPIOC, &GPIO_Init_Structure);
 
-  /* USER CODE BEGIN SDIO_MspInit 1 */
+  /* GPIOD configuration */
+  GPIO_Init_Structure.Pin = GPIO_PIN_2;
+  HAL_GPIO_Init(GPIOD, &GPIO_Init_Structure);
 
-  /* USER CODE END SDIO_MspInit 1 */
-  }
-
+  /* NVIC configuration for SDIO interrupts */
+  HAL_NVIC_SetPriority(SDIO_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(SDIO_IRQn);
+    
+  /* Configure DMA Rx parameters */
+  dmaRxHandle.Init.Channel             = SD_DMAx_Rx_CHANNEL;
+  dmaRxHandle.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+  dmaRxHandle.Init.PeriphInc           = DMA_PINC_DISABLE;
+  dmaRxHandle.Init.MemInc              = DMA_MINC_ENABLE;
+  dmaRxHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+  dmaRxHandle.Init.MemDataAlignment    = DMA_MDATAALIGN_WORD;
+  dmaRxHandle.Init.Mode                = DMA_PFCTRL;
+  dmaRxHandle.Init.Priority            = DMA_PRIORITY_VERY_HIGH;
+  dmaRxHandle.Init.FIFOMode            = DMA_FIFOMODE_ENABLE;
+  dmaRxHandle.Init.FIFOThreshold       = DMA_FIFO_THRESHOLD_FULL;
+  dmaRxHandle.Init.MemBurst            = DMA_MBURST_INC4;
+  dmaRxHandle.Init.PeriphBurst         = DMA_PBURST_INC4;
+  
+  dmaRxHandle.Instance = SD_DMAx_Rx_STREAM;
+  
+  /* Associate the DMA handle */
+  __HAL_LINKDMA(hsd, hdmarx, dmaRxHandle);
+  
+  /* Deinitialize the stream for new transfer */
+  HAL_DMA_DeInit(&dmaRxHandle);
+  
+  /* Configure the DMA stream */
+  HAL_DMA_Init(&dmaRxHandle);
+  
+  /* Configure DMA Tx parameters */
+  dmaTxHandle.Init.Channel             = SD_DMAx_Tx_CHANNEL;
+  dmaTxHandle.Init.Direction           = DMA_MEMORY_TO_PERIPH;
+  dmaTxHandle.Init.PeriphInc           = DMA_PINC_DISABLE;
+  dmaTxHandle.Init.MemInc              = DMA_MINC_ENABLE;
+  dmaTxHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+  dmaTxHandle.Init.MemDataAlignment    = DMA_MDATAALIGN_WORD;
+  dmaTxHandle.Init.Mode                = DMA_PFCTRL;
+  dmaTxHandle.Init.Priority            = DMA_PRIORITY_VERY_HIGH;
+  dmaTxHandle.Init.FIFOMode            = DMA_FIFOMODE_ENABLE;
+  dmaTxHandle.Init.FIFOThreshold       = DMA_FIFO_THRESHOLD_FULL;
+  dmaTxHandle.Init.MemBurst            = DMA_MBURST_INC4;
+  dmaTxHandle.Init.PeriphBurst         = DMA_PBURST_INC4;
+  
+  dmaTxHandle.Instance = SD_DMAx_Tx_STREAM;
+  
+  /* Associate the DMA handle */
+  __HAL_LINKDMA(hsd, hdmatx, dmaTxHandle);
+  
+  /* Deinitialize the stream for new transfer */
+  HAL_DMA_DeInit(&dmaTxHandle);
+  
+  /* Configure the DMA stream */
+  HAL_DMA_Init(&dmaTxHandle); 
+  
+  /* NVIC configuration for DMA transfer complete interrupt */
+  HAL_NVIC_SetPriority(SD_DMAx_Rx_IRQn, 6, 0);
+  HAL_NVIC_EnableIRQ(SD_DMAx_Rx_IRQn);
+  
+  /* NVIC configuration for DMA transfer complete interrupt */
+  HAL_NVIC_SetPriority(SD_DMAx_Tx_IRQn, 6, 0);
+  HAL_NVIC_EnableIRQ(SD_DMAx_Tx_IRQn);
 }
 
 void HAL_SD_MspDeInit(SD_HandleTypeDef* hsd)

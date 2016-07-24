@@ -54,6 +54,7 @@ uint8_t BSP_SD_Init(void)
     return MSD_ERROR;
   }
   SD_state = HAL_SD_Init(&hsd, &SDCardInfo);
+  
 #ifdef BUS_4BITS
   if (SD_state == MSD_OK)
   {
