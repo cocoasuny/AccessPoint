@@ -64,7 +64,10 @@ extern volatile AxesRaw_t  g_Gyro;        //陀螺仪传感器数据
 extern volatile AxesRaw_t  g_Mag;         //地磁传感器数据
 extern volatile Attitude_t g_AttitudeInfo;  //姿态信息
 extern uint16_t g_LedFlashTime;
-extern uint8_t  g_aRxBuffer[RXBUFFERSIZE];;
+extern uint8_t  g_aRxBuffer[RXBUFFERSIZE];
+extern char SDPath[4];  /* SD logical drive path */
+extern FATFS SDFatFs;  /* File system object for SD card logical drive */
+extern FIL  MyFile;     /* File object */
 
 void MX_GPIO_Init(void);
 

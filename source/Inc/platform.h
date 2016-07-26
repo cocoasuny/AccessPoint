@@ -58,6 +58,7 @@
 #define SHELL_ENABLE    //Shell使能
 #define RTC_SHELL       //注释掉屏蔽RTC Shell功能
 #define BLUENRG_CENTRAL_SHELL
+#define FATFS_SHELL
 
 /* Size of Reception buffer */
 #define RXBUFFERSIZE          1

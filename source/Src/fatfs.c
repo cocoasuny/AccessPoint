@@ -34,10 +34,7 @@
 #include "fatfs.h"
 #include "main.h"
 
-uint8_t retSD;    /* Return value for SD */
-char SDPath[4];  /* SD logical drive path */
-FATFS SDFatFs;  /* File system object for SD card logical drive */
-FIL  MyFile;     /* File object */
+
 
 /* USER CODE BEGIN Variables */
 
@@ -45,8 +42,7 @@ FIL  MyFile;     /* File object */
 
 void MX_FATFS_Init(void) 
 {
-	SD_CardInfo CardInfo;
-
+	uint8_t retSD;    /* Return value for SD */
 	MX_SDIO_SD_Init();
 	
     /*## FatFS: Link the SD driver ###########################*/
@@ -55,15 +51,7 @@ void MX_FATFS_Init(void)
 	{
 		printf("FatFs Link Driver Err\r\n");
 	}
-	//BSP_SD_Init();
-
-    FatFS_Test();
-//	BSP_SD_GetCardInfo(&CardInfo);
-//	printf("SD Card info:\r\n");
-//	printf("Card ManufacturerID:%d\r\n",CardInfo.SD_cid.ManufacturerID);	//制造商ID
-//	printf("Card RCA:%d\r\n",CardInfo.RCA);								//卡相对地址
-//	printf("Card Capacity:%d MB\r\n",(uint32_t)(CardInfo.CardCapacity>>20));	//显示容量
-//	printf("Card BlockSize:%d\r\n\r\n",CardInfo.CardBlockSize);			//显示块大小	
+//    FatFS_Test();
 }
 
 /**

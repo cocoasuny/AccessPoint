@@ -42,9 +42,12 @@ volatile Attitude_t g_AttitudeInfo;  //姿态信息
 uint16_t g_LedFlashTime = 500;
 uint8_t  g_aRxBuffer[RXBUFFERSIZE] = {0};
 ;
-/* Private variables ---------------------------------------------------------*/
+/* Golabal variables ---------------------------------------------------------*/
 SD_HandleTypeDef hsd;
 HAL_SD_CardInfoTypedef SDCardInfo;
+char SDPath[4];  /* SD logical drive path */
+FATFS SDFatFs;  /* File system object for SD card logical drive */
+FIL  MyFile;     /* File object */
 
 /* Private variables ---------------------------------------------------------*/
 xTaskHandle  xHandleLedCtl;

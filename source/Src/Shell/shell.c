@@ -70,6 +70,7 @@ const char Shell_HelpMsg[] =
 	"*      Available Shell Modules:                                *\r\n"
 	"*      rtc                                                     *\r\n"
 	"*      ble                                                     *\r\n"
+	"*      fil                                                     *\r\n"
 	"================================================================\r\n"
 	"\r\n";
 
@@ -339,6 +340,9 @@ void Shell_ProcessorHandler(void)
 		#endif
 		#ifdef BLUENRG_CENTRAL_SHELL
 			Shell_BlueNRG_Central_Service();
+		#endif
+		#ifdef FATFS_SHELL
+			Shell_Fatfs_Service();
 		#endif
 		Shell_Invalid_Service();  //指令无效的缺省处理
 	}
