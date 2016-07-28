@@ -39,6 +39,7 @@ const char Fatfs_HelpMsg[] =
 	" fil help\t\t   -  help.\r\n"
 	" fil cap\t\t    -  the capacity of SD Card.\r\n"
 	" fil creat\t\t  -  creat a file.\r\n"
+	" fil dir\t\t    -  display all files in current directory \r\n"
 	"\r\n";
 	
 /****************************************************************************** 
@@ -68,7 +69,8 @@ void Shell_Fatfs_Service(void)
     RTC_TimeTypeDef rtc_time;
 	SD_CardInfo  CardInfo;
 	char fileName[20] = "a.txt";
-	uint32_t bw;
+	uint32_t bw = 0;
+	char buff[256] = {0};
 
     //指令初级过滤  
     //--------------------------------------------------------------------------  
@@ -99,7 +101,7 @@ void Shell_Fatfs_Service(void)
     {
 		/* 以时间信息为文件名称 */
 		Calendar_Get(&date_s,&rtc_time);
-		sprintf(fileName,"%d%d-%d-%d.txt",20,date_s.Year,date_s.Month,date_s.Date);
+		sprintf(fileName,"%d%d%d%d.txt",20,date_s.Year,date_s.Month,date_s.Date);
 		
 		/*##-1- Register the file system object to the FatFs module ##############*/
 		if(f_mount(&SDFatFs, (TCHAR const*)SDPath, 0) != FR_OK)
@@ -108,9 +110,6 @@ void Shell_Fatfs_Service(void)
 				/* FatFs Initialization Error */
 				printf("f_mount Err in fatfs_shell\r\n"); 
 			#endif
-		}
-		else  
-		{
 			/*##-2- Create a FAT file system (format) on the logical drive #########*/
 			/* WARNING: Formatting the uSD card will delete all content on the device */
 			if(f_mkfs((TCHAR const*)SDPath, 0, 0) != FR_OK)
@@ -120,8 +119,14 @@ void Shell_Fatfs_Service(void)
 					printf("FatFs Format Err in fatfs_shell\r\n");
 				#endif
 			}
+			#ifdef Debug_FatFs_Driver
+			else
+			{
+				printf("FatFs Format OK\r\n");
+			}
+			#endif
 		}
-
+		
 		/*##-3- Create and Open a new text file object with write access #####*/
 		if(f_open(&MyFile, fileName, FA_CREATE_ALWAYS | FA_WRITE) != FR_OK)
 		{
@@ -139,16 +144,12 @@ void Shell_Fatfs_Service(void)
 			f_close(&MyFile);
 		}
     }
-    else if(StrComp(ptRxd,"wr time "))      //
+    else if(StrComp(ptRxd,"dir"))      //显示当前路径下所有文件
     {
-		retval = sscanf((void*)shell_rx_buff,"%*s%*s%*s%d:%d:%d %d-%d-%d",&Hour,&Min,&Sec,&Year,&Mon,&Date);  
-        if(3 != retval)
+		if (f_mount(&SDFatFs, "", 1) == FR_OK) 
 		{
-			return;   //没有接收到3个输入数据,直接退出  
-		}
-		else
-		{
-			printf("Set Time :%d,%d,%d\r\n",Hour,Min,Sec);
+			strcpy(buff, "/");
+			scan_files(buff);
 		}
     }
     else if(StrComp(ptRxd,"wr date "))      //

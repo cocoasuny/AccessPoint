@@ -51,6 +51,7 @@ extern char SD_Path[4]; /* SD logical drive path */
 
 void MX_FATFS_Init(void);
 void FatFS_Test(void);
+FRESULT scan_files (char* path);
 
 /* USER CODE BEGIN Prototypes */
 
