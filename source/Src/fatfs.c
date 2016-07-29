@@ -51,7 +51,36 @@ void MX_FATFS_Init(void)
 	{
 		printf("FatFs Link Driver Err\r\n");
 	}
-//    FatFS_Test();
+    
+    /*##-1- Register the file system object to the FatFs module ##############*/
+    if(f_mount(&SDFatFs, (TCHAR const*)SDPath, 0) != FR_OK)
+    {
+        #ifdef Debug_FatFs_Driver
+            /* FatFs Initialization Error */
+            printf("f_mount Err in fatfs_shell\r\n"); 
+        #endif
+        /*##-2- Create a FAT file system (format) on the logical drive #########*/
+        /* WARNING: Formatting the uSD card will delete all content on the device */
+        if(f_mkfs((TCHAR const*)SDPath, 0, 0) != FR_OK)
+        {
+            /* FatFs Format Error */
+            #ifdef Debug_FatFs_Driver
+                printf("FatFs Format Err in fatfs_shell\r\n");
+            #endif
+        }
+        #ifdef Debug_FatFs_Driver
+        else
+        {
+            printf("FatFs Format OK\r\n");
+        }
+        #endif
+    }
+    #ifdef Debug_FatFs_Driver
+    else
+    {
+        printf("Register FS OK\r\n");
+    }
+    #endif
 }
 
 /**

@@ -36,10 +36,11 @@
 //命令帮助文件
 const char Fatfs_HelpMsg[] =
 	"[Fatfs contorls]\r\n"
-	" fil help\t\t   -  help.\r\n"
-	" fil cap\t\t    -  the capacity of SD Card.\r\n"
-	" fil creat\t\t  -  creat a file.\r\n"
-	" fil dir\t\t    -  display all files in current directory \r\n"
+	" fil help\t\t              -  help.\r\n"
+	" fil cap\t\t               -  the capacity of SD Card.\r\n"
+	" fil creat\t\t             -  creat a file.\r\n"
+    " fil open <Name>\t\t       -  open a file by name.\r\n"
+	" fil dir\t\t               -  display all files in current directory \r\n"
 	"\r\n";
 	
 /****************************************************************************** 
@@ -57,20 +58,15 @@ void Shell_Fatfs_Service(void)
 {
     uint8_t     *ptRxd;         //用于接收指令处理  
     uint8_t     i;
-	int     	Hour = 0;
-	int     	Min  = 0;
-	int     	Sec  = 0;
-	int         Year = 0;
-	int         Mon  = 0;
-	int         Date = 0;
-	uint16_t    retval; 
     
     RTC_DateTypeDef date_s;
     RTC_TimeTypeDef rtc_time;
 	SD_CardInfo  CardInfo;
 	char fileName[20] = "a.txt";
+    char openfileName[20] = "0";
 	uint32_t bw = 0;
 	char buff[256] = {0};
+    FRESULT ret = FR_NO_FILE;
 
     //指令初级过滤  
     //--------------------------------------------------------------------------  
@@ -103,32 +99,9 @@ void Shell_Fatfs_Service(void)
 		Calendar_Get(&date_s,&rtc_time);
 		sprintf(fileName,"%d%d%d%d.txt",20,date_s.Year,date_s.Month,date_s.Date);
 		
-		/*##-1- Register the file system object to the FatFs module ##############*/
-		if(f_mount(&SDFatFs, (TCHAR const*)SDPath, 0) != FR_OK)
-		{
-			#ifdef Debug_FatFs_Driver
-				/* FatFs Initialization Error */
-				printf("f_mount Err in fatfs_shell\r\n"); 
-			#endif
-			/*##-2- Create a FAT file system (format) on the logical drive #########*/
-			/* WARNING: Formatting the uSD card will delete all content on the device */
-			if(f_mkfs((TCHAR const*)SDPath, 0, 0) != FR_OK)
-			{
-				/* FatFs Format Error */
-				#ifdef Debug_FatFs_Driver
-					printf("FatFs Format Err in fatfs_shell\r\n");
-				#endif
-			}
-			#ifdef Debug_FatFs_Driver
-			else
-			{
-				printf("FatFs Format OK\r\n");
-			}
-			#endif
-		}
-		
 		/*##-3- Create and Open a new text file object with write access #####*/
-		if(f_open(&MyFile, fileName, FA_CREATE_ALWAYS | FA_WRITE) != FR_OK)
+        ret = f_open(&MyFile, fileName, FA_CREATE_ALWAYS | FA_WRITE);
+		if(ret != FR_OK)
 		{
 			/* 'STM32.TXT' file Open for write Error */
 			#ifdef Debug_FatFs_Driver
@@ -138,7 +111,7 @@ void Shell_Fatfs_Service(void)
 		else
 		{
 			#ifdef Debug_FatFs_Driver
-				printf("Creat file success\r\n");
+                printf("Creat file success:%d\r\n",ret);
 			#endif
 			//f_write(&MyFile, "FatFS Write Demo \r\n www.armfly.com \r\n", 34, &bw);
 			f_close(&MyFile);
@@ -146,32 +119,14 @@ void Shell_Fatfs_Service(void)
     }
     else if(StrComp(ptRxd,"dir"))      //显示当前路径下所有文件
     {
-		if (f_mount(&SDFatFs, "", 1) == FR_OK) 
-		{
-			strcpy(buff, "/");
-			scan_files(buff);
-		}
+        strcpy(buff, "/");
+        scan_files(buff);
     }
-    else if(StrComp(ptRxd,"wr date "))      //
+    else if(StrComp(ptRxd,"open"))      //根据文件名称打开文件
     {
-		retval = sscanf((void*)shell_rx_buff,"%*s%*s%*s%d-%d-%d %d:%d:%d",&Year,&Mon,&Date,&Hour,&Min,&Sec);  
-		if(6 != retval)
-		{
-			return;   //没有接收到4个输入数据,直接退出 
-		}
-		else
-		{
-			printf("Set Date:%d-%d-%d %d:%d:%d\r\n",Year,Mon,Date,Hour,Min,Sec);
-            date_s.Year = (uint8_t)(Year % 100);
-            date_s.Month = (uint8_t)Mon;
-            date_s.Date = (uint8_t)Date;
-            
-            rtc_time.Hours = (uint8_t)Hour;
-            rtc_time.Minutes = (uint8_t)Min;
-            rtc_time.Seconds = (uint8_t)Sec;
-           
-            Calendar_Set(&date_s,&rtc_time);
-		}
+		sscanf((void*)shell_rx_buff,"%*s%*s %s",openfileName);  
+
+        printf("open the file:%s\r\n",openfileName);        
     }
     else if(StrComp(ptRxd,"help\r\n"))      //
     {
