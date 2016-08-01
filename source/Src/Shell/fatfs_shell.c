@@ -40,6 +40,7 @@ const char Fatfs_HelpMsg[] =
 	" fil cap\t\t               -  the capacity of SD Card.\r\n"
 	" fil creat\t\t             -  creat a file.\r\n"
     " fil open <Name>\t\t       -  open a file by name.\r\n"
+	" fil wr <Data>\t\t         -  write data to the file.\r\n"
 	" fil dir\t\t               -  display all files in current directory \r\n"
 	"\r\n";
 	
@@ -64,6 +65,7 @@ void Shell_Fatfs_Service(void)
 	SD_CardInfo  CardInfo;
 	char fileName[20] = "a.txt";
     char openfileName[20] = "0";
+	char *wrdataBuf = "0";
 	uint32_t bw = 0;
 	char buff[256] = {0};
     FRESULT ret = FR_NO_FILE;
@@ -126,8 +128,45 @@ void Shell_Fatfs_Service(void)
     {
 		sscanf((void*)shell_rx_buff,"%*s%*s %s",openfileName);  
 
-        printf("open the file:%s\r\n",openfileName);        
+		/* Open the file by name */	
+		ret = f_open(&MyFile, openfileName, FA_CREATE_ALWAYS | FA_WRITE);	
+		if(ret != FR_OK)
+		{
+			#ifdef Debug_FatFs_Driver
+				printf("open the file:%s err\r\n",openfileName);
+			#endif
+		}
+		else
+		{
+			#ifdef Debug_FatFs_Driver
+                printf("open the file:%s Ok\r\n",openfileName);
+			#endif
+		}			
     }
+    else if(StrComp(ptRxd,"wr"))      //根据文件名称打开文件
+    {
+		sscanf((void*)shell_rx_buff,"%*s%*s %s",wrdataBuf);  
+		
+		/*##-4- Write data to the text file ################################*/
+		ret = f_write(&MyFile, wrdataBuf, sizeof(wrdataBuf), (void *)&bw);
+
+		if((bw == 0) || (ret != FR_OK))
+		{
+			#ifdef Debug_FatFs_Driver
+				/* 'STM32.TXT' file Write or EOF Error */
+				printf("f_write data %s Err\r\n",wrdataBuf);
+			#endif
+		}
+		else
+		{
+			#ifdef Debug_FatFs_Driver
+				/* 'STM32.TXT' file Write or EOF Error */
+				printf("f_write data %s,%d OK\r\n",wrdataBuf,sizeof(wrdataBuf));
+			#endif			
+			/*##-5- Close the open text file #################################*/
+			f_sync(&MyFile);
+		}       
+    }	
     else if(StrComp(ptRxd,"help\r\n"))      //
     {
         printf("%s",Fatfs_HelpMsg);
