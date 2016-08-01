@@ -12,6 +12,8 @@
 #include "cmsis_os.h"    /* _FS_REENTRANT set to 1 */                
 #include "bsp_driver_sd.h"
 
+#define FSIZE_t  DWORD
+
 /*-----------------------------------------------------------------------------/
 / Functions and Buffer Configurations
 /-----------------------------------------------------------------------------*/

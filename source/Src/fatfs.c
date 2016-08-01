@@ -231,7 +231,7 @@ DWORD get_fattime(void)
     
     Calendar_Get(&date_s,&rtc_time);
     
-    date_s.Year -= 1980;  //????1980??
+    date_s.Year = (date_s.Year + 2000) - 1980;  //????1980??
     date_s.Month = date_s.Month;     //0-11???1-12?
     rtc_time.Seconds /= 2;       //?????0-29
     
