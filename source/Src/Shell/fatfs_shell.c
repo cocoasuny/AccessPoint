@@ -40,6 +40,10 @@ const char Fatfs_HelpMsg[] =
 	" fil cap\t\t               -  the capacity of SD Card.\r\n"
 	" fil creat\t\t             -  creat a file.\r\n"
     " fil open <Name>\t\t       -  open a file by name.\r\n"
+    " fil close\t\t             -  close the file.\r\n"
+    " fil tell\t\t              -  get the wr/rd pointer.\r\n"
+    " fil sync\t\t              -  sync the open file.\r\n"
+    " fil wr <data>\t\t         -  write the datas to the file.\r\n"
 	" fil dir\t\t               -  display all files in current directory \r\n"
 	"\r\n";
 	
@@ -64,7 +68,10 @@ void Shell_Fatfs_Service(void)
 	SD_CardInfo  CardInfo;
 	char fileName[20] = "a.txt";
     char openfileName[20] = "0";
+    char wrData[8] = "0";
+    char rtext[8] = "0";
 	uint32_t bw = 0;
+    uint32_t br = 0;
 	char buff[256] = {0};
     FRESULT ret = FR_NO_FILE;
 
@@ -105,7 +112,7 @@ void Shell_Fatfs_Service(void)
 		{
 			/* 'STM32.TXT' file Open for write Error */
 			#ifdef Debug_FatFs_Driver
-				printf("f_open Err in fatfs_shell\r\n");
+                printf("f_open Err in fatfs_shell:%d\r\n",ret);
 			#endif
 		}
 		else
@@ -126,7 +133,120 @@ void Shell_Fatfs_Service(void)
     {
 		sscanf((void*)shell_rx_buff,"%*s%*s %s",openfileName);  
 
-        printf("open the file:%s\r\n",openfileName);        
+		/* Open a file by the Name */
+        ret = f_open(&MyFile, openfileName, FA_OPEN_EXISTING | FA_WRITE | FA_READ);
+		if(ret != FR_OK)
+		{
+			/* file Open for write Error */
+			#ifdef Debug_FatFs_Driver
+                printf("open the file:%s Err:%d\r\n",openfileName,ret); 
+			#endif
+		}
+		else
+		{
+			#ifdef Debug_FatFs_Driver
+                printf("open the file:%s OK\r\n",openfileName); 
+			#endif      
+        }
+    }
+    else if(StrComp(ptRxd,"close"))      //关闭当前打开的文件
+    {
+        /* Close the open text file #################################*/
+        ret = f_close(&MyFile);
+        if(ret != FR_OK)
+        {
+            #ifdef Debug_FatFs_Driver
+                /* file Write or EOF Error */
+                printf("f_close data Err:%d\r\n",ret);
+            #endif
+        }
+        else
+        {
+            #ifdef Debug_FatFs_Driver
+                printf("f_close data OK\r\n");
+            #endif
+        }          
+    }  
+    else if(StrComp(ptRxd,"tell"))      
+    {
+        FSIZE_t  ptr;
+        /* gets the current read/write pointer of a file. */
+        ptr = f_tell(&MyFile);
+        printf("ptr:0x%x\r\n",ptr);
+    }
+    else if(StrComp(ptRxd,"sync"))
+    {
+        /*- Sync the open text file #################################*/
+        ret = f_sync(&MyFile);
+        if(ret != FR_OK)
+        {
+            #ifdef Debug_FatFs_Driver
+                /* file Write or EOF Error */
+                printf("f_sync data Err:%d\r\n",ret);
+            #endif
+        }
+        else
+        {
+            #ifdef Debug_FatFs_Driver
+                printf("f_sync data OK\r\n");
+            #endif
+        }        
+    }        
+    else if(StrComp(ptRxd,"wr"))      //写入字符串
+    {      
+
+        /* 组合写入数据 */
+        Calendar_Get(&date_s,&rtc_time);
+        wrData[0] = rtc_time.Hours;
+        wrData[1] = rtc_time.Minutes;
+        wrData[2] = rtc_time.Seconds;
+        wrData[3] = 0x41;
+        wrData[4] = 0x42;
+        wrData[5] = 0x43;
+        wrData[6] = 0x44;
+        wrData[7] = 0x45;
+        
+        /*##-4- Write data to the text file ################################*/
+        ret = f_write(&MyFile, wrData, sizeof(wrData), (void *)&bw);
+
+        if((bw == 0) || (ret != FR_OK))
+        {
+            #ifdef Debug_FatFs_Driver
+                /* file Write or EOF Error */
+                printf("f_write data Err:%d\r\n",ret);
+            #endif
+        }
+        else
+        {
+            #ifdef Debug_FatFs_Driver
+                printf("f_write data OK\r\n");
+            #endif
+        }
+    }
+    else if(StrComp(ptRxd,"rd\r\n")) 
+    {
+        /*- Read data from the text file ###########################*/
+        ret = f_read(&MyFile, rtext, sizeof(rtext), (UINT*)&br);
+
+        if((ret != FR_OK) || br == 0)
+        {
+            #ifdef Debug_FatFs_Driver
+                /* file Read or EOF Error */
+                printf("f_read Err:%d\r\n",ret);
+            #endif
+        }
+        else
+        {
+            #ifdef Debug_FatFs_Driver
+                /* Success of the demo: no error occurrence */
+                printf("read data OK:");
+                for(i=0;i<sizeof(rtext);i++)
+                {
+                    printf("%d,",rtext[i]);
+                }
+                printf("\r\n");
+            #endif
+        }
     }
     else if(StrComp(ptRxd,"help\r\n"))      //
     {
