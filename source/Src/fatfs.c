@@ -40,9 +40,9 @@
 
 /* USER CODE END Variables */    
 
-void MX_FATFS_Init(void) 
+uint8_t MX_FATFS_Init(void) 
 {
-	uint8_t retSD;    /* Return value for SD */
+	uint8_t retSD = true;    /* Return value for SD */
 	MX_SDIO_SD_Init();
 	
     /*## FatFS: Link the SD driver ###########################*/
@@ -50,7 +50,12 @@ void MX_FATFS_Init(void)
 	if(retSD != 0)
 	{
 		printf("FatFs Link Driver Err\r\n");
+        retSD = false;
 	}
+    else
+    {
+        retSD = true;
+    }
     
     /*##-1- Register the file system object to the FatFs module ##############*/
     if(f_mount(&SDFatFs, (TCHAR const*)SDPath, 0) != FR_OK)
@@ -59,6 +64,7 @@ void MX_FATFS_Init(void)
             /* FatFs Initialization Error */
             printf("f_mount Err in fatfs_shell\r\n"); 
         #endif
+        retSD = false;
         /*##-2- Create a FAT file system (format) on the logical drive #########*/
         /* WARNING: Formatting the uSD card will delete all content on the device */
         if(f_mkfs((TCHAR const*)SDPath, 0, 0) != FR_OK)
@@ -67,6 +73,7 @@ void MX_FATFS_Init(void)
             #ifdef Debug_FatFs_Driver
                 printf("FatFs Format Err in fatfs_shell\r\n");
             #endif
+            retSD = false;
         }
         #ifdef Debug_FatFs_Driver
         else
@@ -81,6 +88,8 @@ void MX_FATFS_Init(void)
         printf("Register FS OK\r\n");
     }
     #endif
+    
+    return retSD;
 }
 
 /**

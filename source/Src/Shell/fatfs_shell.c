@@ -41,8 +41,10 @@ const char Fatfs_HelpMsg[] =
 	" fil creat\t\t             -  creat a file.\r\n"
     " fil open <Name>\t\t       -  open a file by name.\r\n"
     " fil close\t\t             -  close the file.\r\n"
+    " fil delete <Name>\t\t     -  delete a file by name.\r\n"
     " fil tell\t\t              -  get the wr/rd pointer.\r\n"
     " fil sync\t\t              -  sync the open file.\r\n"
+    " fil size\t\t              -  get size of the open file.\r\n"
     " fil wr <data>\t\t         -  write the datas to the file.\r\n"
 	" fil dir\t\t               -  display all files in current directory \r\n"
 	"\r\n";
@@ -105,7 +107,7 @@ void Shell_Fatfs_Service(void)
 		/* 以时间信息为文件名称 */
 		Calendar_Get(&date_s,&rtc_time);
 		sprintf(fileName,"%d%d%d%d.txt",20,date_s.Year,date_s.Month,date_s.Date);
-		
+
 		/*##-3- Create and Open a new text file object with write access #####*/
         ret = f_open(&MyFile, fileName, FA_CREATE_ALWAYS | FA_WRITE);
 		if(ret != FR_OK)
@@ -120,7 +122,6 @@ void Shell_Fatfs_Service(void)
 			#ifdef Debug_FatFs_Driver
                 printf("Creat file success:%d\r\n",ret);
 			#endif
-			//f_write(&MyFile, "FatFS Write Demo \r\n www.armfly.com \r\n", 34, &bw);
 			f_close(&MyFile);
 		}
     }
@@ -134,7 +135,8 @@ void Shell_Fatfs_Service(void)
 		sscanf((void*)shell_rx_buff,"%*s%*s %s",openfileName);  
 
 		/* Open a file by the Name */
-        ret = f_open(&MyFile, openfileName, FA_OPEN_EXISTING | FA_WRITE | FA_READ);
+        ret = f_open(&MyFile, openfileName, FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
+        memset(openfileName,0,sizeof(openfileName));
 		if(ret != FR_OK)
 		{
 			/* file Open for write Error */
@@ -167,12 +169,44 @@ void Shell_Fatfs_Service(void)
             #endif
         }          
     }  
+    else if(StrComp(ptRxd,"delete"))      //根据文件名称删除文件
+    {
+		sscanf((void*)shell_rx_buff,"%*s%*s %s",openfileName);  
+
+		/* delate a file by the Name */
+        ret = f_unlink(openfileName);
+        memset(openfileName,0,sizeof(openfileName));
+		if(ret != FR_OK)
+		{
+			/* file Open for write Error */
+			#ifdef Debug_FatFs_Driver
+                printf("delete the file:%s Err:%d\r\n",openfileName,ret); 
+			#endif
+		}
+		else
+		{
+			#ifdef Debug_FatFs_Driver
+                printf("delete the file:%s OK\r\n",openfileName); 
+			#endif      
+        }
+    }    
     else if(StrComp(ptRxd,"tell"))      
     {
         FSIZE_t  ptr;
         /* gets the current read/write pointer of a file. */
         ptr = f_tell(&MyFile);
         printf("ptr:0x%x\r\n",ptr);
+    }
+    else if(StrComp(ptRxd,"size"))   //获取文件大小
+    {
+        FSIZE_t len = 0;
+        len = f_size(&MyFile);
+
+        #ifdef Debug_FatFs_Driver
+            /* file Write or EOF Error */
+            printf("f_size:%d\r\n",len);
+        #endif
+        
     }
     else if(StrComp(ptRxd,"sync"))
     {

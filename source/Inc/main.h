@@ -58,6 +58,10 @@
 #include "shell.h"
 #include "ble_Central_Connect.h"
 #include "bsp_rtc_calendar.h"
+#include "Log.h"
+
+
+
 
 extern volatile AxesRaw_t  g_Acc;         //加速度传感器数据
 extern volatile AxesRaw_t  g_Gyro;        //陀螺仪传感器数据

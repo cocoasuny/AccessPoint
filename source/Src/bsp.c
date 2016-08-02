@@ -39,6 +39,16 @@
 #include "bsp_pressure.h"
 
 
+const char Dev_Msg[] =
+	"/*********************************  This is to be Done *******************************/\r\n"
+    "/*                                                                                   */\r\n"
+    "/*                                                                                   */\r\n"
+    "/*                              BSP Init Complate,Start...                           */\r\n"
+#ifdef SHELL_ENABLE
+    "/*                              Pls enter help for more usages                       */\r\n"
+#endif
+	"\r\n";
+
 /** @defgroup bsp_Private_Variables
  * @{
  */
@@ -97,6 +107,10 @@ static HAL_StatusTypeDef I2C_EXPBD_ReadData(uint8_t* pBuffer, uint8_t Addr, uint
   */
 void Bsp_Init(void)
 {
+    uint8_t BSP_init_Status = true;
+    RTC_DateTypeDef date_s;
+    RTC_TimeTypeDef rtc_time;    
+    
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_USART1_UART_Init();   //for debug & shell
@@ -107,22 +121,41 @@ void Bsp_Init(void)
     MX_USB_DEVICE_Init();
     
     /* init code for humidity & temperature sensor */
-    BSP_HUM_TEMP_Init();
+    if(BSP_HUM_TEMP_Init() != HUM_TEMP_OK)
+    {
+        printf("BSP_HUM_TEMP_Init Err\r\n");
+        BSP_init_Status = false;
+    }
     
     /* init code for pressure sensor */
-    BSP_PRESSURE_Init();
+    if(BSP_PRESSURE_Init() != PRESSURE_OK)
+    {
+        printf("BSP_PRESSURE_Init Err\r\n");
+        BSP_init_Status = false;
+    }
  
     /* init code for FATFS */
-    MX_FATFS_Init();
+    if(MX_FATFS_Init() != true)
+    {
+        printf("BSP Fatfs Init Err\r\n");
+        BSP_init_Status = false;
+    }
     
     #ifndef PRINTFLOG
         HAL_Delay(5000);
     #endif
-    LOG("BSP Init Complate,Start...\r\n");
-    printf("Please Enter The Current time\r\n");
-	#ifdef SHELL_ENABLE
-		LOG("pls enter help for more usages\r\n");
-	#endif
+    if(BSP_init_Status == false)
+    {
+        printf("***********WARMING: There are Errs In BSP Init **************************\r\n");
+    }
+    else
+    {
+        printf("%s",Dev_Msg);
+        Calendar_Get(&date_s,&rtc_time);
+        printf("\r\nThe Current Time:  %02d-%02d-%02d %d %0.2d:%0.2d:%0.2d\r\n",
+                                        2000 + date_s.Year,date_s.Month, date_s.Date,date_s.WeekDay, 
+                                        rtc_time.Hours, rtc_time.Minutes, rtc_time.Seconds); 
+    }
 }    
 
 

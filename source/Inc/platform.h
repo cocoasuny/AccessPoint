@@ -45,9 +45,9 @@
 
 /* Debug Switch */
 #define PRINTFLOG
-#define Debug_BlueNRF
-#define Debug_Sensor_Humidity
-#define Debug_Sensor_Press
+//#define Debug_BlueNRF
+//#define Debug_Sensor_Humidity
+//#define Debug_Sensor_Press
 #define Debug_Sensor_Temperature
 #define Debug_LedControl
 #define Debug_BlueNRG_Scan
