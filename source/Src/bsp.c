@@ -158,8 +158,15 @@ void Bsp_Init(void)
     }
 }    
 
-
-
+/**
+  * @brief  软件复位系统
+  * @param  None
+  * @retval None    
+  */
+void Sys_SoftReset(void)
+{
+	NVIC_SystemReset();
+}
 
 /**
   * @brief  Configures LED GPIO.
