@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
-  * @file   fatfs.h
-  * @brief  Header for fatfs applications
+  * File Name          : Log.c
+  * Description        : Main program body
   ******************************************************************************
   *
   * COPYRIGHT(c) 2016 STMicroelectronics
@@ -30,35 +30,49 @@
   *
   ******************************************************************************
   */
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __fatfs_H
-#define __fatfs_H
-#ifdef __cplusplus
- extern "C" {
-#endif
 
-#include "ff.h"
-#include "ff_gen_drv.h"
-#include "sd_diskio.h" /* defines SD_Driver as external */
+/**
+  * @brief  创建Log文件
+  * @param  None
+  * @retval 是否创建成功         
+  */
+uint8_t Log_Creat(void)
+{
+    RTC_DateTypeDef date_s;
+    RTC_TimeTypeDef rtc_time;
+    char fileName[20] = "a.txt";
+    uint8_t status = false;
+    FRESULT ret = FR_NO_FILE;
+    
+    /* 以时间信息为文件名称 */
+    Calendar_Get(&date_s,&rtc_time);
+    sprintf(fileName,"%d%d%d%d.log",20,date_s.Year,date_s.Month,date_s.Date);
 
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-extern uint8_t retSD; /* Return value for SD */
-extern char SD_Path[4]; /* SD logical drive path */
-
-uint8_t MX_FATFS_Init(void);
-void FatFS_Test(void);
-FRESULT scan_files (char* path);
-
-/* USER CODE BEGIN Prototypes */
-
-/* USER CODE END Prototypes */
-#ifdef __cplusplus
+    /*##-3- Create and Open a new text file object with write access #####*/
+    ret = f_open(&MyFile, fileName, FA_CREATE_ALWAYS | FA_WRITE);
+    if(ret != FR_OK)
+    {
+        /* Log file Open for write Error */
+        #ifdef Debug_Log
+            printf("Log File Creat Err:%d\r\n",ret);
+        #endif
+        status = false;
+    }
+    else
+    {
+        f_close(&MyFile);
+        status = true;
+    }
+    return status;    
 }
-#endif
-#endif /*__fatfs_H */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+
+
+
+
+
+
+

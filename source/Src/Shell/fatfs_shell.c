@@ -107,7 +107,7 @@ void Shell_Fatfs_Service(void)
 		/* 以时间信息为文件名称 */
 		Calendar_Get(&date_s,&rtc_time);
 		sprintf(fileName,"%d%d%d%d.txt",20,date_s.Year,date_s.Month,date_s.Date);
-		
+
 		/*##-3- Create and Open a new text file object with write access #####*/
         ret = f_open(&MyFile, fileName, FA_CREATE_ALWAYS | FA_WRITE);
 		if(ret != FR_OK)
@@ -122,7 +122,6 @@ void Shell_Fatfs_Service(void)
 			#ifdef Debug_FatFs_Driver
                 printf("Creat file success:%d\r\n",ret);
 			#endif
-			//f_write(&MyFile, "FatFS Write Demo \r\n www.armfly.com \r\n", 34, &bw);
 			f_close(&MyFile);
 		}
     }
