@@ -39,8 +39,8 @@
 #include "stm32f4xx_hal.h"
 
 
-uint8_t Log_Creat(void);
-
+uint8_t DLog_Creat(void);
+uint8_t DLog(const char* lpszFormat, ...);
 
 #endif /* __Log_H */
 

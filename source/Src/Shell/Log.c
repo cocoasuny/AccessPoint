@@ -32,6 +32,10 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "Log.h"
+
+
+#define LogHeaderLen      22  //Log前缀信息长度"[2016-12-31 23:59:59:]"
 
 
 /**
@@ -39,7 +43,7 @@
   * @param  None
   * @retval 是否创建成功         
   */
-uint8_t Log_Creat(void)
+uint8_t DLog_Creat(void)
 {
     RTC_DateTypeDef date_s;
     RTC_TimeTypeDef rtc_time;
@@ -69,7 +73,81 @@ uint8_t Log_Creat(void)
     return status;    
 }
 
+/**
+  * @brief  记录Log信息到Log文件中,应该在时间配置完成，OS开始调度之后使用
+  * @param  lpszFormat 形参
+  *         ... 不定参数，用法与printf一致
+  * @retval 是否记录成功        
+  */
+uint8_t DLog(const char* lpszFormat, ...)
+{
+	int nLen;
+	char szBuffer[CMD_BUFFER_LEN+1];
+	char wrData[CMD_BUFFER_LEN+1+LogHeaderLen] = "0";
+	va_list args;
+    RTC_DateTypeDef date_s;
+    RTC_TimeTypeDef rtc_time;
+    char fileName[20] = "a.log";
+    uint8_t status = false;
+    FRESULT ret = FR_NO_FILE;	
+	uint32_t bw = 0;
+	FSIZE_t len = 0;
+	
+		
+	va_start(args, lpszFormat);
+	nLen = vsnprintf(szBuffer, CMD_BUFFER_LEN+1, lpszFormat, args);
+	va_end(args);
+	
+//	printf("%s",szBuffer);
+    /* 以时间信息为文件名称 */
+    Calendar_Get(&date_s,&rtc_time);
+    sprintf(fileName,"%d%d%d%d.log",20,date_s.Year,date_s.Month,date_s.Date);
+	
+	/* 获取Log信息前缀，以时间信息为前缀 */
+	sprintf(wrData,"[%d%d-%d-%d %d:%d:%d]:",20,date_s.Year,date_s.Month,date_s.Date,
+											rtc_time.Hours,rtc_time.Minutes,rtc_time.Seconds);
+	memcpy(wrData+LogHeaderLen,szBuffer,nLen);
 
+    /*##-3- Create and Open a new text file object with write access #####*/
+    ret = f_open(&MyFile, fileName, FA_OPEN_ALWAYS | FA_WRITE);
+    if(ret != FR_OK)
+    {
+        /* Log file Open for write Error */
+        #ifdef Debug_Log
+            printf("Log File Creat Err:%d\r\n",ret);
+        #endif
+        status = false;
+    }
+    else
+    {
+		len = f_size(&MyFile);
+		f_lseek(&MyFile,len);
+		if(f_tell(&MyFile) == len)
+		{
+			ret = f_write(&MyFile, wrData,(LogHeaderLen+nLen), (void *)&bw);
+			if(ret != FR_OK)
+			{
+				/* Log file Open for write Error */
+				#ifdef Debug_Log
+					printf("Log File Writr Err:%d\r\n",ret);
+				#endif
+				status = false;
+			}
+			else
+			{
+				status = true;
+			}
+		}
+		#ifdef Debug_Log
+		else
+		{	
+			printf("f_lseek Err in Log Write\r\n");
+		}
+		#endif
+        f_close(&MyFile);
+    }	
+	return status;
+}
 
 
 

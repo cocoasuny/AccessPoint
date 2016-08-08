@@ -246,6 +246,10 @@ void Shell_Invalid_Service(void)
 			printf("\r\nRTC:  %02d-%02d-%02d %d %0.2d:%0.2d:%0.2d\r\n",2000 + date_s.Year,date_s.Month, date_s.Date,date_s.WeekDay, 
                                                                rtc_time.Hours, rtc_time.Minutes, rtc_time.Seconds); 
 		}
+		else if(StrComp(ptSrc,"restart\r\n")) //重启设备
+		{
+			Sys_SoftReset();
+		}
         else goto ERROR_LOOP;
     }
     else
