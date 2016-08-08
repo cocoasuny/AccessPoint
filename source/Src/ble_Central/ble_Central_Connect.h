@@ -63,11 +63,19 @@ typedef enum
 typedef struct
 {
 	tBDAddr 						bdaddr;					//蓝牙设备地址,Bluetooth 48 bit address (in little-endian order).
-	uint8_t 						data_RSSI[0]; 			// RSSI is last octect (signed integer).
+	uint8_t 						data_RSSI; 			    // RSSI is last octect (signed integer).
 	BLE_CONNECT_STATUS_T			ble_status;             //蓝牙连接状态	
 	bool                            isValid;                //设备列表是否可用，不可用，则加入到下一个位置
 }BLE_DEVICE_LIST_INFO_T;
 
+
+typedef struct
+{
+	tBDAddr 						bdaddr;					//蓝牙设备地址,Bluetooth 48 bit address (in little-endian order).
+	uint16_t 						connHandle; 			//Connect Handle 
+	BLE_CONNECT_STATUS_T			ble_status;             //蓝牙连接状态	
+	bool                            isValid;                //连接列表是否可用，不可用，则加入到下一个位置
+}BLE_MASTER_CONNECT_CONTEXT_INFO_T;
 				     
 /** 
   * @brief  Ble device GAP Central direct connection establishment parameter structures defintion
@@ -90,6 +98,7 @@ typedef struct
 
 /* Exported macro ------------------------------------------------------------*/
 #define MAX_SUPPORT_SCAN_NBR          20
+#define MAX_SUPPORT_CONNECT_NBR       7     //Central设备最大连接Peripheral设备数
 #define BLE_MACADDR_LEN               6   	//Bluetooth 48 bit address (in little-endian order).
 
 
