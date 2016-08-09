@@ -142,7 +142,6 @@ DRESULT SD_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count)
   {
     res = RES_ERROR;
   }
-  
   return res;
 }
 #endif /* _USE_WRITE == 1 */

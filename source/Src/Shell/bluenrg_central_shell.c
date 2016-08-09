@@ -36,12 +36,12 @@
 //命令帮助文件
 const char BlueNRGCentral_HelpMsg[] =
 	"[BlueNRGCentral contorls]\r\n"
-	" ble help\t\t- help.\r\n"
-	" ble start scan   - ble central start scan\r\n"
-	" ble stop scan    - ble central stop scan\r\n"
-	" ble connmac <add1>,<add2>,<add3>,<add4>,<add5>,<add6>\r\n"
-	" ble disconn - ble central disconnect device\r\n"
-	" ble discs - ble central discovery service\r\n"
+	" ble help                                                    - help.\r\n"
+	" ble start scan                                              - ble central start scan\r\n"
+	" ble stop scan                                               - ble central stop scan\r\n"
+	" ble connmac <add1>,<add2>,<add3>,<add4>,<add5>,<add6>       -\r\n"
+	" ble disconn                                                 - ble central disconnect device\r\n"
+	" ble discs                                                   - ble central discovery service\r\n"
 	"\r\n";
 	
 /****************************************************************************** 

@@ -317,6 +317,7 @@ void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle)
 			printf("%02X-", addr[i]);
 		}
 		printf("%02X\n", addr[0]);
+		printf("Connected handle:0x%4x",handle);
 	#endif
 }
 /**

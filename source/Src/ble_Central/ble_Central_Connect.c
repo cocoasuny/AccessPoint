@@ -255,7 +255,7 @@ void GAP_Scan_ADVData_CB(le_advertising_info *pdata)
 		{
 			bleScanList[i].isValid = false;
 			memcpy(bleScanList[i].bdaddr,pdata->bdaddr,BLE_MACADDR_LEN);
-			bleScanList[i].data_RSSI[0] = pdata->data_RSSI[0];
+			bleScanList[i].data_RSSI = pdata->data_RSSI[pdata->data_length-1];
 			bleScanList[i].ble_status = CONNECTABLE;
 		}
 	}
@@ -290,7 +290,7 @@ void GAP_Discovery_CompleteCB(void)
 		LOG("              %d,  0x%x 0x%x 0x%x 0x%x 0x%x 0x%x    %d      %d\r\n",
 				i,bleScanList[i].bdaddr[0],bleScanList[i].bdaddr[1],bleScanList[i].bdaddr[2],
 				bleScanList[i].bdaddr[3],bleScanList[i].bdaddr[4],bleScanList[i].bdaddr[5],
-				bleScanList[i].ble_status,bleScanList[i].data_RSSI[0]					
+				bleScanList[i].ble_status,bleScanList[i].data_RSSI					
 			);		
 	}	
 }
@@ -307,7 +307,7 @@ static void  Reset_Discovery_List(BLE_DEVICE_LIST_INFO_T *pScanList, uint8_t len
 	for(i=0;i<len;i++)
 	{
 		pScanList[i].ble_status = DEFAULT;
-		pScanList[i].data_RSSI[0] = 0;
+		pScanList[i].data_RSSI = 0;
 		memset(pScanList[i].bdaddr,0,BLE_MACADDR_LEN);
 		pScanList[i].isValid = true;
 	}

@@ -63,7 +63,7 @@ typedef enum
 typedef struct
 {
 	tBDAddr 						bdaddr;					//蓝牙设备地址,Bluetooth 48 bit address (in little-endian order).
-	uint8_t 						data_RSSI[0]; 			// RSSI is last octect (signed integer).
+	uint8_t 						data_RSSI; 			    // RSSI is last octect (signed integer).
 	BLE_CONNECT_STATUS_T			ble_status;             //蓝牙连接状态	
 	bool                            isValid;                //设备列表是否可用，不可用，则加入到下一个位置
 }BLE_DEVICE_LIST_INFO_T;
