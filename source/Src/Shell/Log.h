@@ -40,7 +40,7 @@
 
 
 uint8_t DLog_Creat(void);
-uint8_t DLog(const char* lpszFormat, ...);
+uint8_t DsLog(const char* lpszFormat, ...);
 
 #endif /* __Log_H */
 

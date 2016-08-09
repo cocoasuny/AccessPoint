@@ -37,6 +37,12 @@
 
 #define LogHeaderLen      22  //Log前缀信息长度"[2016-12-31 23:59:59:]"
 
+#ifdef Debug_LogRecordEnable
+#define DLog(...) DsLog(__VA_ARGS__)
+#else
+#define DLog(...) 
+#endif
+
 
 /**
   * @brief  创建Log文件
@@ -79,7 +85,7 @@ uint8_t DLog_Creat(void)
   *         ... 不定参数，用法与printf一致
   * @retval 是否记录成功        
   */
-uint8_t DLog(const char* lpszFormat, ...)
+uint8_t DsLog(const char* lpszFormat, ...)
 {
 	int nLen;
 	char szBuffer[CMD_BUFFER_LEN+1];

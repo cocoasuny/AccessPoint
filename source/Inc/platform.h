@@ -52,6 +52,7 @@
 #define Debug_LedControl
 #define Debug_BlueNRG_Scan
 #define Debug_FatFs_Driver
+//#define Debug_LogRecordEnable
 
 
 /* Shell Switch */

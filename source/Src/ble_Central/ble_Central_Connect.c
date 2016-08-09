@@ -35,8 +35,9 @@
 
 
 /* Typedefs -------------------------------------------------------------------*/
-BLE_DEVICE_LIST_INFO_T bleScanList[MAX_SUPPORT_SCAN_NBR];
-BLE_DIRECTCONNECT_PARAMT_T uxBleDirectConnectParamt;
+BLE_DEVICE_LIST_INFO_T                  bleScanList[MAX_SUPPORT_SCAN_NBR];
+BLE_DIRECTCONNECT_PARAMT_T              uxBleDirectConnectParamt;
+BLE_MASTER_CONNECT_CONTEXT_INFO_T       bleMasterConnectList[MAX_SUPPORT_CONNECT_NBR];
 
 
 /* Private function declare ---------------------------------------------------*/
@@ -101,7 +102,10 @@ tBleStatus Stop_Scan_Procedure(void)
  */
 tBleStatus GAP_Central_Make_Connection(tBDAddr addr)
 {
-	tBleStatus ret;
+	tBleStatus      ret;
+	uint8_t         i = 0;
+	bool            isAdded = true;  //是否需要加入新设备,false:不需要；true:需要
+    
 //	tBDAddr GAP_Peripheral_address = {0x12, 0x34, 0x00, 0xE1, 0x80, 0x02};
 	/* Start the direct connection establishment procedure to the GAP
 		peripheral device in general discoverable mode using the following
@@ -126,6 +130,32 @@ tBleStatus GAP_Central_Make_Connection(tBDAddr addr)
 		Conn_Len_Max: 2000 (Maximum length of connection needed for the LE
 		connection).
 	*/
+    /* 将需要连接的设备Mac地址加入bleMasterConnectList */
+	for(i=0;i<MAX_SUPPORT_CONNECT_NBR;i++)
+	{
+		if(memcmp(addr,bleMasterConnectList[i].bdaddr,BLE_MACADDR_LEN) == 0)  //需要连接的设备Mac地址在设备中
+		{
+			//在设备列表中
+			isAdded = false;
+			break;
+		}
+	}  
+	if(isAdded == true) //需要将新需要连接的设备mac地址加入设备列表中
+	{
+		for(i=0;i<MAX_SUPPORT_CONNECT_NBR;i++) //查找可以加入的位置
+		{
+			if(bleMasterConnectList[i].isValid == true)
+			{
+				break;
+			}
+		}
+		
+		if(i<MAX_SUPPORT_CONNECT_NBR)  //在最大支持设备列表数内
+		{
+			bleMasterConnectList[i].isValid = false;
+			bleMasterConnectList[i].ble_status = DEFAULT;
+		}
+	}    
 	
 	ret = aci_gap_create_connection(0x4000, 0x4000, PUBLIC_ADDR,
 									addr, PUBLIC_ADDR, 40, 40, 0, 60, 2000 , 2000);
@@ -228,9 +258,18 @@ void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata)
  */
 void GAP_Scan_ADVData_CB(le_advertising_info *pdata)
 {
+    /*  le_advertising_info parameters:
+        pr->evt_type: event type (advertising packets types);
+        pr->bdaddr_type: type of the peer address (PUBLIC_ADDR,RANDOM_ADDR);
+        pr->bdaddr: address of the peer device found during scanning;
+        pr->length: length of advertising or scan response data;
+        pr->data_RSSI[]: length advertising or scan response data + RSSI.
+        RSSI is last octect (signed integer).
+    */    
 	uint8_t i = 0;
+    uint8_t j = 0;
 	bool    isAdded = true;  //是否需要加入新设备,false:不需要；true:需要
-	
+
 	for(i=0;i<MAX_SUPPORT_SCAN_NBR;i++)
 	{
 		if(memcmp(pdata->bdaddr,bleScanList[i].bdaddr,BLE_MACADDR_LEN) == 0)  //新扫描到的设备Mac地址在设备中
@@ -257,6 +296,14 @@ void GAP_Scan_ADVData_CB(le_advertising_info *pdata)
 			memcpy(bleScanList[i].bdaddr,pdata->bdaddr,BLE_MACADDR_LEN);
 			bleScanList[i].data_RSSI = pdata->data_RSSI[pdata->data_length-1];
 			bleScanList[i].ble_status = CONNECTABLE;
+            
+            /* for debug */
+            printf("Adv Data:");
+            for(j=0;j<pdata->data_length;j++)
+            {
+                printf("0x%x,",pdata->data_RSSI[j]);
+            }
+            printf("\r\n");
 		}
 	}
 }
@@ -284,7 +331,7 @@ void GAP_Discovery_CompleteCB(void)
 	
 	validDevNum = i++;	
 
-	LOG("Scan Dev(%d):  ID  MAC                       	  Status  RSSI\r\n",validDevNum);
+	LOG("Scan Dev(%d): ID  MAC                       	  Status  RSSI\r\n",validDevNum);
 	for(i=0;i<validDevNum;i++)
 	{	
 		LOG("              %d,  0x%x 0x%x 0x%x 0x%x 0x%x 0x%x    %d      %d\r\n",
