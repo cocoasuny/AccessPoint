@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    main.h
+  * @file    ble_Central_Service.h
   * @author  CL
   * @version V1.0.0
   * @date    04-July-2014
@@ -36,47 +36,35 @@
   */ 
   
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H_
-#define __MAIN_H_
+#ifndef __BLE_CENTRAL_SERVICE_H_
+#define __BLE_CENTRAL_SERVICE_H_
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-#include "fatfs.h"
-#include "cmsis_os.h"
-#include "usb_device.h"
-#include "bsp.h"
-#include "platform.h"
-#include "bluenrg_interface.h"
-#include "hci.h"
-#include "bluenrg_utils.h"
-#include "bluenrg_service.h"
-#include "freertostask.h"
-#include "bluenrg_sensor_service.h"
-#include "bluenrg_remotecontrol_service.h"
-#include "global_typedef.h"
-#include "ANO_DT.h"
-#include "shell.h"
-#include "ble_Central_Connect.h"
-#include "ble_Central_Service.h"
-#include "bsp_rtc_calendar.h"
-#include "Log.h"
 
 
+/* Exported types ------------------------------------------------------------*/
+
+/** 
+  * @brief  Ble Central services structures definition  
+  */
+typedef struct
+{
+	uint8_t 		uuid[16];
+	uint16_t		serviceHandle;
+	uint16_t        endGroupHandle;
+    bool            isServiceValid;	
+}BLE_CENTRAL_SERVICE_INFO_T;	
+  
+
+extern BLE_CENTRAL_SERVICE_INFO_T		bleCentralAccService;         //Central设备三轴传感器服务
 
 
-extern volatile AxesRaw_t  g_Acc;         //加速度传感器数据
-extern volatile AxesRaw_t  g_Gyro;        //陀螺仪传感器数据
-extern volatile AxesRaw_t  g_Mag;         //地磁传感器数据
-extern volatile Attitude_t g_AttitudeInfo;  //姿态信息
-extern uint16_t g_LedFlashTime;
-extern uint8_t  g_aRxBuffer[RXBUFFERSIZE];
-extern char SDPath[4];  /* SD logical drive path */
-extern FATFS SDFatFs;  /* File system object for SD card logical drive */
-extern FIL  MyFile;     /* File object */
-
-void MX_GPIO_Init(void);
+tBleStatus ble_CentralService_Init(void);
+tBleStatus ble_Central_Add_Acc_Service(void);  
+void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata);  
+  
+#endif /* __BLE_CENTRAL_SERVICE_H_ */
 
 
-
-#endif /* __MAIN_H_ */
 

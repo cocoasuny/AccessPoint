@@ -97,6 +97,9 @@ void BlueNRG_Init(void)
     /* Service Init */
     Service_Init();
 
+	/* ble Central Service Init */
+	ble_CentralService_Init();
+	
     /* Start Advertise */
     Start_Advertise();
 }

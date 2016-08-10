@@ -558,6 +558,11 @@
               <FileType>1</FileType>
               <FilePath>..\source\Src\ble_Central\ble_Central_Connect.c</FilePath>
             </File>
+            <File>
+              <FileName>ble_Central_Service.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\source\Src\ble_Central\ble_Central_Service.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
