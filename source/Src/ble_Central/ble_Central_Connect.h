@@ -77,7 +77,8 @@ typedef struct
 	BLE_CONNECT_STATUS_T			ble_status;             //蓝牙连接状态	
 	bool                            isListValid;            //连接列表是否可用，不可用，则加入到下一个位置
     BLE_CENTRAL_SERVICE_INFO_T		bleCentralAccService;   //Central设备三轴传感器服务
-    BLE_CENTRAL_CHARACTER_INFO_T    bleCentralAccCharacter; //Central设备三轴传感器Character
+    BLE_CENTRAL_CHARACTER_INFO_T    bleCentralAccCharacter; //Central设备三轴传感器数据Character
+	BLE_CENTRAL_CHARACTER_INFO_T    bleCentralAccFreeFallCharacter;  //Central设备三轴传感器Free Fall Character
 }BLE_MASTER_CONNECT_CONTEXT_INFO_T;
 				     
 /** 

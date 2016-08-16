@@ -50,6 +50,9 @@
 /* Typedefs -------------------------------------------------------------------*/
 
 
+/* Private function declare */
+static void Reset_bleMasterConnectList_ALL(void);
+
 /**
    * @brief ble_CentralService_Init初始化
    * @param  None
@@ -59,6 +62,7 @@ tBleStatus ble_CentralService_Init(void)
 {
 	tBleStatus ret=0;
 	
+	Reset_bleMasterConnectList_ALL();
 	ret = ble_Central_Add_Acc_Service();
 	
 	return ret;
@@ -103,6 +107,7 @@ tBleStatus GAP_Discovery_Characteristics(uint16_t conn_handle)
     tBleStatus ret = BLE_STATUS_ERROR;
     
     GetMasterConnectListLocationFromHandle(&Location,conn_handle);
+
     if(bleMasterConnectList[Location].bleCentralAccService.isServiceValid == true)
     {
         ret = aci_gatt_disc_all_charac_of_serv(bleMasterConnectList[Location].connHandle,
@@ -129,8 +134,13 @@ tBleStatus GAP_Discovery_Characteristics_CB(evt_att_read_by_type_resp *pdata)
         pr->handle_value_pair[]: event data.
     */  
     
-    tBleStatus ret = BLE_STATUS_ERROR;
-    uint8_t i = 0;
+    tBleStatus 		ret = BLE_STATUS_ERROR;
+	uint8_t 		Location = 0;
+    uint8_t 		i = 0;
+	uint16_t 		attribut_handle = 0;
+	uint16_t        value_handle = 0;
+	uint8_t         properties = 0;
+	uint8_t         uuid[16] = {0};
     
     //for debug
     printf("Discovery Character:\r\n");
@@ -143,6 +153,34 @@ tBleStatus GAP_Discovery_Characteristics_CB(evt_att_read_by_type_resp *pdata)
         printf("0x%x,",pdata->handle_value_pair[i]);
     }
     printf("\r\n");
+
+	/* 处理Character数据 */
+	attribut_handle = (uint16_t)(pdata->handle_value_pair[1]<<8 | pdata->handle_value_pair[0]);
+	properties = pdata->handle_value_pair[2];
+	value_handle = (uint16_t)(pdata->handle_value_pair[4]<<8 | pdata->handle_value_pair[3]);
+	memcpy(uuid,pdata->handle_value_pair+5,sizeof(uuid));
+	
+	GetMasterConnectListLocationFromHandle(&Location,pdata->conn_handle);
+	if(pdata->conn_handle == bleMasterConnectList[Location].connHandle)  //判断属于哪个连接
+	{
+		/* 判断是否是Acc Service Free Fall Character*/
+		if(memcmp(uuid,bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.uuid ,sizeof(uuid)) == 0)  //都是可以确认长度的数据，因此，可以这样做
+		{
+			//uuid是bleCentralAccService free fall character
+			bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.properties = properties;
+			bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.handle = attribut_handle;
+			bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.valueHandle = value_handle;
+			bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterValid = true;
+		}
+		else if(memcmp(uuid,bleMasterConnectList[Location].bleCentralAccCharacter.uuid ,sizeof(uuid)) == 0)  //都是可以确认长度的数据，因此，可以这样做
+		{
+			//uuid是bleCentralAccService data characeter
+			bleMasterConnectList[Location].bleCentralAccCharacter.properties = properties;
+			bleMasterConnectList[Location].bleCentralAccCharacter.handle = attribut_handle;
+			bleMasterConnectList[Location].bleCentralAccCharacter.valueHandle = value_handle;
+			bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterValid = true;
+		}
+	}
     
     return ret;
 }
@@ -168,7 +206,28 @@ tBleStatus ble_Central_Add_Acc_Service(void)
         bleMasterConnectList[i].bleCentralAccService.serviceHandle = 0;
         bleMasterConnectList[i].bleCentralAccService.isServiceValid = false; 
     }
-
+	
+	/* add acc service free fall character */
+	CENTRAL_COPY_FREE_FALL_UUID(uuid);
+    for(i=0;i<MAX_SUPPORT_CONNECT_NBR;i++)
+    {
+        memcpy(bleMasterConnectList[i].bleCentralAccFreeFallCharacter.uuid,uuid,sizeof(uuid));
+        bleMasterConnectList[i].bleCentralAccFreeFallCharacter.properties = 0;
+        bleMasterConnectList[i].bleCentralAccFreeFallCharacter.handle = 0;
+		bleMasterConnectList[i].bleCentralAccFreeFallCharacter.valueHandle = 0;
+        bleMasterConnectList[i].bleCentralAccFreeFallCharacter.isCharacterValid = false; 
+    }	
+	
+	/* add acc service data character */
+	CENTRAL_COPY_ACC_UUID(uuid);
+    for(i=0;i<MAX_SUPPORT_CONNECT_NBR;i++)
+    {
+        memcpy(bleMasterConnectList[i].bleCentralAccCharacter.uuid,uuid,sizeof(uuid));
+        bleMasterConnectList[i].bleCentralAccCharacter.properties = 0;
+        bleMasterConnectList[i].bleCentralAccCharacter.handle = 0;
+		bleMasterConnectList[i].bleCentralAccCharacter.valueHandle = 0;
+        bleMasterConnectList[i].bleCentralAccCharacter.isCharacterValid = false; 
+    }
 	return 	ret;
 }
 
@@ -221,6 +280,7 @@ void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata)
 	//判断该服务属于哪个Connect
 	if(pdata->conn_handle == bleMasterConnectList[Location].connHandle)
 	{
+		/* 判断是否是Acc Service */
 		if(memcmp(uuid,bleMasterConnectList[Location].bleCentralAccService.uuid,sizeof(uuid)) == 0)  //都是可以确认长度的数据，因此，可以这样做
 		{
 			//uuid是bleCentralAccService
@@ -277,8 +337,25 @@ tBleStatus GetMasterConnectListLocationFromHandle(uint8_t *Location,uint16_t con
     return ret;
 }
 
-
-
+/**
+* @brief  Reset_bleMasterConnectList_ALL,上电清楚所有连接信息
+ * @param  None
+ * @retval None
+ */
+static void Reset_bleMasterConnectList_ALL(void)
+{
+	uint8_t i = 0;
+	for(i=0;i<MAX_SUPPORT_CONNECT_NBR;i++) //查找可以加入的位置
+	{
+		bleMasterConnectList[i].connHandle = 0;
+		bleMasterConnectList[i].ble_status = DEFAULT;
+		bleMasterConnectList[i].isListValid = true;
+		memset(bleMasterConnectList[i].bdaddr,0,BLE_MACADDR_LEN);
+		bleMasterConnectList[i].bleCentralAccService.isServiceValid = false;
+		bleMasterConnectList[i].bleCentralAccCharacter.isCharacterValid = false;
+		bleMasterConnectList[i].bleCentralAccFreeFallCharacter.isCharacterValid = false;
+	}
+}
 
 
 

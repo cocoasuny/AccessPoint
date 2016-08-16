@@ -153,11 +153,12 @@ tBleStatus GAP_Central_Make_Connection(tBDAddr addr)
 				break;
 			}
 		}
-		
+
 		if(i<MAX_SUPPORT_CONNECT_NBR)  //在最大支持设备列表数内
 		{
 			bleMasterConnectList[i].isListValid = false;
 			bleMasterConnectList[i].ble_status = DEFAULT;
+			memcpy(bleMasterConnectList[i].bdaddr,addr,BLE_MACADDR_LEN);
 		}
 	}    
 	
@@ -307,7 +308,6 @@ static void  Reset_Discovery_List(BLE_DEVICE_LIST_INFO_T *pScanList, uint8_t len
 		pScanList[i].isValid = true;
 	}
 }
-
 
 
 

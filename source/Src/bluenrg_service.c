@@ -321,7 +321,7 @@ void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle)
 			printf("%02X-", addr[i]);
 		}
 		printf("%02X\n", addr[0]);
-		printf("Connected handle:0x%4x",handle);
+		printf("Connected handle:0x%04x",handle);
 	#endif
     for(i=0;i<MAX_SUPPORT_CONNECT_NBR;i++)
     {
@@ -566,6 +566,7 @@ void HCI_Event_CB(void *pckt)
                          pr->attribute_data_length: length of the event data; 
                          pr->data[]: event data.
                     */
+					
                      if(isGAPDiscoveringService == true)
                      {
                         //GAP Discovery Service Procedure Complete, Start to discovery the characteristics
