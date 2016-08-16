@@ -128,8 +128,8 @@ typedef uint8_t tBleStatus;
 /**
 	*Self Define
 	*/
-#define BLE_WAIT_REMOTE_ENABLE_NOTIFY					(0xF2)
-#define BLE_WAIT_ENABLE_NOTIFY     (0xF3)
+#define BLE_WAIT_REMOTE_ENABLE_NOTIFY			(0xF2)
+#define BLE_WAIT_ENABLE_NOTIFY                  (0xF3)
 
 
 /**

@@ -41,6 +41,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include "ble_Central_Service.h"
 
 
 /* Exported types ------------------------------------------------------------*/
@@ -74,7 +75,9 @@ typedef struct
 	tBDAddr 						bdaddr;					//蓝牙设备地址,Bluetooth 48 bit address (in little-endian order).
 	uint16_t 						connHandle; 			//Connect Handle 
 	BLE_CONNECT_STATUS_T			ble_status;             //蓝牙连接状态	
-	bool                            isValid;                //连接列表是否可用，不可用，则加入到下一个位置
+	bool                            isListValid;            //连接列表是否可用，不可用，则加入到下一个位置
+    BLE_CENTRAL_SERVICE_INFO_T		bleCentralAccService;   //Central设备三轴传感器服务
+    BLE_CENTRAL_CHARACTER_INFO_T    bleCentralAccCharacter; //Central设备三轴传感器Character
 }BLE_MASTER_CONNECT_CONTEXT_INFO_T;
 				     
 /** 
@@ -102,14 +105,18 @@ typedef struct
 #define BLE_MACADDR_LEN               6   	//Bluetooth 48 bit address (in little-endian order).
 
 
+/* Exported variables */
+extern bool isGAPDiscoveringService;
+extern bool isGAPDiscoveringCharacter;
+extern BLE_MASTER_CONNECT_CONTEXT_INFO_T       bleMasterConnectList[MAX_SUPPORT_CONNECT_NBR];
 
+/* Exported function */
 void GAP_Scan_ADVData_CB(le_advertising_info *pdata);
 void GAP_Discovery_CompleteCB(void);
 void Start_Scan_Procedure(void);
 tBleStatus Stop_Scan_Procedure(void);
 tBleStatus GAP_Central_Make_Connection(tBDAddr addr);
 tBleStatus GAP_Central_Make_Disconnection(uint16_t conn_handle);
-tBleStatus GAP_Discovery_Service(uint16_t conn_handle);
 
 #endif /* __BLE_CENTRAL_CONNECT_H_ */
 

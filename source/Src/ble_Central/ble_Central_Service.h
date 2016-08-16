@@ -43,8 +43,6 @@
 #include "stm32f4xx_hal.h"
 
 
-/* Exported types ------------------------------------------------------------*/
-
 /** 
   * @brief  Ble Central services structures definition  
   */
@@ -55,14 +53,34 @@ typedef struct
 	uint16_t        endGroupHandle;
     bool            isServiceValid;	
 }BLE_CENTRAL_SERVICE_INFO_T;	
+
+/** 
+  * @brief  Ble Central Characteristics structures definition  
+  */
+typedef struct
+{
+    uint8_t         uuid[16];
+    uint8_t         properties;
+    uint16_t        handle;
+    uint16_t        valueHandle;
+    bool            isCharacterValid;
+}BLE_CENTRAL_CHARACTER_INFO_T;
+    
   
 
-extern BLE_CENTRAL_SERVICE_INFO_T		bleCentralAccService;         //Central设备三轴传感器服务
+/* Exported types ------------------------------------------------------------*/
 
 
+
+/* Exported functions */
 tBleStatus ble_CentralService_Init(void);
 tBleStatus ble_Central_Add_Acc_Service(void);  
-void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata);  
+tBleStatus GAP_Discovery_Service(uint16_t conn_handle);
+tBleStatus GAP_Discovery_Characteristics(uint16_t conn_handle);
+tBleStatus GAP_Discovery_Characteristics_CB(evt_att_read_by_type_resp *pdata);
+void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata);
+void GAP_Discovery_Service_Complete_CB(evt_gatt_procedure_complete *pdata);
+tBleStatus GetMasterConnectListLocationFromHandle(uint8_t *Location,uint16_t conn_handle);
   
 #endif /* __BLE_CENTRAL_SERVICE_H_ */
 

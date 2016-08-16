@@ -34,6 +34,10 @@
 #include "main.h"
 
 
+/* Global variables declare */
+bool isGAPDiscoveringService = false;
+bool isGAPDiscoveringCharacter = false;
+
 /* Typedefs -------------------------------------------------------------------*/
 BLE_DEVICE_LIST_INFO_T                  bleScanList[MAX_SUPPORT_SCAN_NBR];
 BLE_DIRECTCONNECT_PARAMT_T              uxBleDirectConnectParamt;
@@ -144,7 +148,7 @@ tBleStatus GAP_Central_Make_Connection(tBDAddr addr)
 	{
 		for(i=0;i<MAX_SUPPORT_CONNECT_NBR;i++) //查找可以加入的位置
 		{
-			if(bleMasterConnectList[i].isValid == true)
+			if(bleMasterConnectList[i].isListValid == true)
 			{
 				break;
 			}
@@ -152,7 +156,7 @@ tBleStatus GAP_Central_Make_Connection(tBDAddr addr)
 		
 		if(i<MAX_SUPPORT_CONNECT_NBR)  //在最大支持设备列表数内
 		{
-			bleMasterConnectList[i].isValid = false;
+			bleMasterConnectList[i].isListValid = false;
 			bleMasterConnectList[i].ble_status = DEFAULT;
 		}
 	}    
@@ -194,32 +198,6 @@ tBleStatus GAP_Central_Make_Disconnection(uint16_t conn_handle)
 	
 	return ret;
 }
-/**
- * @brief  GAP_Discovery_Service,找到当前连接所包含的Service
- * @param  conn_handle
- * @retval status
- */
-tBleStatus GAP_Discovery_Service(uint16_t conn_handle)
-{
-	tBleStatus ret;
-	
-	/* discover all primary services on the server */
-	ret = aci_gatt_disc_all_prim_services(conn_handle);
-	
-	#ifdef Debug_BlueNRG_Scan
-	printf("Discovery Service :");
-	if (ret != BLE_STATUS_SUCCESS) 
-	{
-		printf("aci_gatt_disc_all_prim_services failed: 0x%02x\r\n", ret);
-	}
-	else 
-	{
-		printf("aci_gatt_disc_all_prim_services  OK\r\n");
-	}
-	#endif
-	
-	return ret;	
-}
 
 /**
  * @brief  GAP_Scan_ADVData_CB,处理Central端扫描结果数据
@@ -237,7 +215,7 @@ void GAP_Scan_ADVData_CB(le_advertising_info *pdata)
         RSSI is last octect (signed integer).
     */    
 	uint8_t i = 0;
-    uint8_t j = 0;
+//    uint8_t j = 0;
 	bool    isAdded = true;  //是否需要加入新设备,false:不需要；true:需要
 
 	for(i=0;i<MAX_SUPPORT_SCAN_NBR;i++)

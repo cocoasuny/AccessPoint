@@ -48,7 +48,7 @@
 
 
 /* Typedefs -------------------------------------------------------------------*/
-BLE_CENTRAL_SERVICE_INFO_T		bleCentralAccService;         //Central设备三轴传感器服务
+
 
 /**
    * @brief ble_CentralService_Init初始化
@@ -65,6 +65,89 @@ tBleStatus ble_CentralService_Init(void)
 }	
 
 /**
+ * @brief  GAP_Discovery_Service,找到当前连接所包含的Service
+ * @param  conn_handle
+ * @retval status
+ */
+tBleStatus GAP_Discovery_Service(uint16_t conn_handle)
+{
+	tBleStatus ret;
+	
+	/* discover all primary services on the server */
+	ret = aci_gatt_disc_all_prim_services(conn_handle);
+	isGAPDiscoveringService = true;    // Discovering service
+    
+	#ifdef Debug_BlueNRG_Scan
+	printf("Discovery Service :");
+	if (ret != BLE_STATUS_SUCCESS) 
+	{
+		printf("aci_gatt_disc_all_prim_services failed: 0x%02x\r\n", ret);
+	}
+	else 
+	{
+		printf("aci_gatt_disc_all_prim_services  OK\r\n");
+	}
+	#endif
+	
+	return ret;	
+}
+
+/**
+ * @brief  GAP_Discovery_Characteristics,找到当前连接所有Service所包含的characteristics
+ * @param  conn_handle
+ * @retval status
+ */
+tBleStatus GAP_Discovery_Characteristics(uint16_t conn_handle)
+{
+    uint8_t Location = 0;
+    tBleStatus ret = BLE_STATUS_ERROR;
+    
+    GetMasterConnectListLocationFromHandle(&Location,conn_handle);
+    if(bleMasterConnectList[Location].bleCentralAccService.isServiceValid == true)
+    {
+        ret = aci_gatt_disc_all_charac_of_serv(bleMasterConnectList[Location].connHandle,
+                                                bleMasterConnectList[Location].bleCentralAccService.serviceHandle,
+                                                bleMasterConnectList[Location].bleCentralAccService.endGroupHandle
+                                               ); 
+        isGAPDiscoveringCharacter = true;
+    }
+    
+    return ret;
+}
+/**
+ * @brief  GAP_Discovery_Characteristics_CB,找到当前连接characteristics CB,处理发现Character结果
+ * @param  conn_handle
+ * @retval status
+ */
+tBleStatus GAP_Discovery_Characteristics_CB(evt_att_read_by_type_resp *pdata)
+{
+    /* evt_att_read_by_type_resp parameters:
+        pr->conn_handle: connection handle; 
+        pr->event_data_length: total length of the event data; 
+        pr->handle_value_pair_length: length of each specific data 
+        within the handle_value_pair[];
+        pr->handle_value_pair[]: event data.
+    */  
+    
+    tBleStatus ret = BLE_STATUS_ERROR;
+    uint8_t i = 0;
+    
+    //for debug
+    printf("Discovery Character:\r\n");
+    printf("conn handle:0x%04x\r\n",pdata->conn_handle);
+    printf("event_data_length:%d\r\n",pdata->event_data_length);
+    printf("handle_value_pair_length:%d\r\n",pdata->handle_value_pair_length);
+    printf("data:");
+    for(i=0;i<pdata->handle_value_pair_length;i++)
+    {
+        printf("0x%x,",pdata->handle_value_pair[i]);
+    }
+    printf("\r\n");
+    
+    return ret;
+}
+
+/**
    * @brief ble_Central_Add_Acc_Service,ble Central端添加三轴传感器服务
    * @param  None
    * @retval None
@@ -72,15 +155,19 @@ tBleStatus ble_CentralService_Init(void)
 tBleStatus ble_Central_Add_Acc_Service(void)
 {
     tBleStatus ret=0;
+    uint8_t i = 0;
 
     uint8_t uuid[16];
 
     /* add service */
     CENTRAL_COPY_ACC_SERVICE_UUID(uuid);
-	memcpy(bleCentralAccService.uuid,uuid,sizeof(uuid));
-	bleCentralAccService.endGroupHandle = 0;
-	bleCentralAccService.serviceHandle = 0;
-	bleCentralAccService.isServiceValid = false; 
+    for(i=0;i<MAX_SUPPORT_CONNECT_NBR;i++)
+    {
+        memcpy(bleMasterConnectList[i].bleCentralAccService.uuid,uuid,sizeof(uuid));
+        bleMasterConnectList[i].bleCentralAccService.endGroupHandle = 0;
+        bleMasterConnectList[i].bleCentralAccService.serviceHandle = 0;
+        bleMasterConnectList[i].bleCentralAccService.isServiceValid = false; 
+    }
 
 	return 	ret;
 }
@@ -106,6 +193,7 @@ void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata)
 	*/
 	
     uint8_t uuid[16] = {0};
+    uint8_t Location = 0;
 	
 	/* for debug */
 	uint8_t i=0;
@@ -128,23 +216,66 @@ void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata)
 //		}
 	}
 	
+    
+    GetMasterConnectListLocationFromHandle(&Location,pdata->conn_handle);
 	//判断该服务属于哪个Connect
-	if(pdata->conn_handle == connection_handle)
+	if(pdata->conn_handle == bleMasterConnectList[Location].connHandle)
 	{
-		if(memcmp(uuid,bleCentralAccService.uuid,sizeof(uuid)) == 0)  //都是可以确认长度的数据，因此，可以这样做
+		if(memcmp(uuid,bleMasterConnectList[Location].bleCentralAccService.uuid,sizeof(uuid)) == 0)  //都是可以确认长度的数据，因此，可以这样做
 		{
 			//uuid是bleCentralAccService
-			bleCentralAccService.serviceHandle = (uint16_t)(pdata->attribute_data_list[1]<<8 | pdata->attribute_data_list[0]);
-			bleCentralAccService.endGroupHandle = (uint16_t)(pdata->attribute_data_list[3]<<8 | pdata->attribute_data_list[2]);
-			bleCentralAccService.isServiceValid = true;
+			bleMasterConnectList[Location].bleCentralAccService.serviceHandle = (uint16_t)(pdata->attribute_data_list[1]<<8 
+                                                                                           | pdata->attribute_data_list[0]);
+			bleMasterConnectList[Location].bleCentralAccService.endGroupHandle = (uint16_t)(pdata->attribute_data_list[3]<<8 
+                                                                                           | pdata->attribute_data_list[2]);
+			bleMasterConnectList[Location].bleCentralAccService.isServiceValid = true;
 		}
 	}
 }
+/**
+ * @brief  GAP_Discovery_Service_Complete_CB,找到当前连接包含的所有Service完成后CB
+ * @param  *pdata
+ * @retval void
+ */
+void GAP_Discovery_Service_Complete_CB(evt_gatt_procedure_complete *pdata)
+{
+     /* evt_gatt_procedure_complete parameters:
+         pr->conn_handle: connection handle; 
+         pr->attribute_data_length: length of the event data; 
+         pr->data[]: event data.
+    */
+    GAP_Discovery_Characteristics(pdata->conn_handle);
+}
 
-
-
-
-
+/**
+ * @brief  GetMasterConnectListLocationFromHandle,通过conn_handle查找所连接的设备地址
+ * @param  uint8_t *Location,uint16_t conn_handle
+ * @retval status
+ */
+tBleStatus GetMasterConnectListLocationFromHandle(uint8_t *Location,uint16_t conn_handle)
+{
+    uint8_t i = 0;
+    tBleStatus ret = 0;
+    
+    for(i= 0;i<MAX_SUPPORT_CONNECT_NBR;i++)
+    {
+        if(conn_handle == bleMasterConnectList[i].connHandle)
+        {
+            *Location = i;
+            break;
+        }
+    }
+    if(i<=MAX_SUPPORT_CONNECT_NBR)
+    {
+        ret = BLE_STATUS_SUCCESS;
+    }
+    else
+    {
+        ret = BLE_STATUS_ERROR;
+    }
+    
+    return ret;
+}
 
 
 

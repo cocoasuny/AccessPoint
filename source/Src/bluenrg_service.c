@@ -310,18 +310,28 @@ static void Read_Request_CB(uint16_t handle)
  */
 void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle)
 {  
+    uint8_t i=0;
 	//  connected = TRUE;
 	connection_handle = handle;
 
 	#ifdef Debug_BlueNRG_Scan
 		printf("Connected to device:");
-		for(int i = 5; i > 0; i--)
+		for(i = 5; i > 0; i--)
 		{
 			printf("%02X-", addr[i]);
 		}
 		printf("%02X\n", addr[0]);
 		printf("Connected handle:0x%4x",handle);
 	#endif
+    for(i=0;i<MAX_SUPPORT_CONNECT_NBR;i++)
+    {
+        if(memcmp(addr,bleMasterConnectList[i].bdaddr,BLE_MACADDR_LEN) == 0)
+        {
+            //在bleMasterConnectList中找到连接的设备MAC地址
+            bleMasterConnectList[i].connHandle = handle;
+            break;
+        }
+    }
 }
 /**
  * @brief  This function is called when the peer device gets disconnected.
@@ -479,7 +489,21 @@ void HCI_Event_CB(void *pckt)
 					GAP_Discovery_Service_CB(pr);
 				}
 				break;
-				
+                case EVT_BLUE_ATT_READ_BY_TYPE_RESP:
+                {
+                    //作为Central端，发现Peripheral端Character时产生
+                    evt_att_read_by_type_resp *pr = (void*)blue_evt->data; 
+                    
+                    /* evt_att_read_by_type_resp parameters:
+                        pr->conn_handle: connection handle; 
+                        pr->event_data_length: total length of the event data; 
+                        pr->handle_value_pair_length: length of each specific data 
+                        within the handle_value_pair[];
+                        pr->handle_value_pair[]: event data.
+                    */
+                    GAP_Discovery_Characteristics_CB(pr);
+                }
+                break;
 				case EVT_BLUE_GATT_ATTRIBUTE_MODIFIED:         
 				{
                     //作为peripheral时，Central端修改属性时产生
@@ -534,6 +558,30 @@ void HCI_Event_CB(void *pckt)
                     //Discovert procedure terminate event handle
 					GAP_Discovery_CompleteCB();
                 }
+                case EVT_BLUE_GATT_PROCEDURE_COMPLETE:
+                {
+                    evt_gatt_procedure_complete *pr = (void*)blue_evt->data; 
+                     /* evt_gatt_procedure_complete parameters:
+                         pr->conn_handle: connection handle; 
+                         pr->attribute_data_length: length of the event data; 
+                         pr->data[]: event data.
+                    */
+                     if(isGAPDiscoveringService == true)
+                     {
+                        //GAP Discovery Service Procedure Complete, Start to discovery the characteristics
+                         isGAPDiscoveringService = false;
+                         GAP_Discovery_Service_Complete_CB(pr);
+                     }
+                     
+                     if(isGAPDiscoveringCharacter == true)
+                     {
+                        //GAP Discovery Character Procedure Complete, Start to discovery next character 
+                         
+                         isGAPDiscoveringCharacter = false;
+                         
+                     }
+                }
+                break;	                
                 default:break;
 			}
 		}
