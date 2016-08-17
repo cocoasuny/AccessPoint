@@ -81,6 +81,7 @@ tBleStatus GAP_Discovery_Characteristics_CB(evt_att_read_by_type_resp *pdata);
 void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata);
 void GAP_Discovery_Service_Complete_CB(evt_gatt_procedure_complete *pdata);
 tBleStatus GetMasterConnectListLocationFromHandle(uint8_t *Location,uint16_t conn_handle);
+tBleStatus GetMasterConnectListLocationFromMACAddr(uint8_t *Location,uint8_t addr[6]);
   
 #endif /* __BLE_CENTRAL_SERVICE_H_ */
 

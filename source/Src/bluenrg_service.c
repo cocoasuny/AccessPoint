@@ -42,7 +42,6 @@
 #include "string.h"
 #include "bluenrg_gap_aci.h"
 #include "bluenrg_gatt_aci.h"
-#include "hci_const.h"
 #include "gp_timer.h"
 #include "bluenrg_hal_aci.h"
 #include "bluenrg_aci_const.h"
@@ -338,13 +337,16 @@ void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle)
  * @param  None 
  * @retval None
  */
-void GAP_DisconnectionComplete_CB(void)
+void GAP_DisconnectionComplete_CB(evt_disconn_complete *pdata)
 {
-//  connected = FALSE;
-//  PRINTF("Disconnected\n");
-//  /* Make the device connectable again. */
-//  set_connectable = TRUE;
-//  notification_enabled = FALSE;
+	#ifdef Debug_BlueNRG_Scan
+		printf("Disconnected handle:0x%04x",pdata->handle);
+	#endif    
+        
+    /* 清除断开连接设备bleMasterConnectList信息 */
+    Reset_bleMasterConnectList_ByHandle(pdata->handle);
+    
+    /* Make the device connectable again. */
     Start_Advertise();
 }
 /**
@@ -394,8 +396,10 @@ void HCI_Event_CB(void *pckt)
 	{
 		case EVT_DISCONN_COMPLETE:  /* BlueNRG disconnection event */
 		{
+            /* Get the disconnect complete data */
+            evt_disconn_complete *pr = (void *)event_pckt->data;
             //蓝牙断开连接事件处理
-			GAP_DisconnectionComplete_CB();
+			GAP_DisconnectionComplete_CB(pr);
 		}
 		break;
 
