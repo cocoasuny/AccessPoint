@@ -321,7 +321,7 @@ void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle)
 			printf("%02X-", addr[i]);
 		}
 		printf("%02X\n", addr[0]);
-		printf("Connected handle:0x%04x",handle);
+		printf("Connected handle:0x%04x\r\n",handle);
 	#endif
     for(i=0;i<MAX_SUPPORT_CONNECT_NBR;i++)
     {
@@ -504,6 +504,29 @@ void HCI_Event_CB(void *pckt)
                     GAP_Discovery_Characteristics_CB(pr);
                 }
                 break;
+				case EVT_BLUE_ATT_FIND_INFORMATION_RESP:
+				{
+					evt_att_find_information_resp *pr = (void*)blue_evt->data;
+					
+					/* evt_att_find_information_resp parameters:
+						pr->conn_handle: connection handle; 
+						pr->event_data_length: Length of following data;
+						pr->format: The format of the handle_uuid_pair. @arg 1: 16-bit UUIDs @arg 2: 128-bit UUIDs
+						pr->handle_uuid_pair: event data.  
+							if format=1, each pair is: 2 octets for handle, 2 octets for UUIDs
+							if format=2, each pair is: 2 octets for handle, 16 octets for UUIDs
+                    */
+					uint8_t i=0;
+					printf("\r\ndescriptor info:\r\n");
+					printf("    conn_handle:0x%04x\r\n",pr->conn_handle);
+					printf("    format:%d\r\n",pr->format);
+					for(i=0;i<pr->event_data_length;i++)
+					{
+						printf("0x%x,",pr->handle_uuid_pair[i]);
+					}
+					printf("\r\n");
+					
+				}
 				case EVT_BLUE_GATT_ATTRIBUTE_MODIFIED:         
 				{
                     //作为peripheral时，Central端修改属性时产生
@@ -529,7 +552,7 @@ void HCI_Event_CB(void *pckt)
                 {
                     //作为Central端，有notification事件时，产生
                     /* Get attribute notification event data */ 
-                    //evt_gatt_attr_notification *evt = (evt_gatt_attr_notification*)blue_evt->data;
+                    evt_gatt_attr_notification *pr = (evt_gatt_attr_notification*)blue_evt->data;
                     
                     /* notification event parameters:
                         evt->conn_handle: the connection handle which notified the attribute;
@@ -539,7 +562,7 @@ void HCI_Event_CB(void *pckt)
                     */
                     
                     //notification事件处理
-					printf("Notic\r\n");
+					GATT_AttributeData_Noticification_CB(pr);
                 }
 				break;
                 case EVT_BLUE_GAP_PROCEDURE_COMPLETE:  //Central设备发现设备完成事件
@@ -563,23 +586,22 @@ void HCI_Event_CB(void *pckt)
                     evt_gatt_procedure_complete *pr = (void*)blue_evt->data; 
                      /* evt_gatt_procedure_complete parameters:
                          pr->conn_handle: connection handle; 
-                         pr->attribute_data_length: length of the event data; 
-                         pr->data[]: event data.
+                         pr->data_length: < Length of error_code field (always 1). 
+                         pr->error_code: Indicates whether the procedure completed with error (BLE_STATUS_FAILED) 
+										or was successful (BLE_STATUS_SUCCESS).
                     */
 					
                      if(isGAPDiscoveringService == true)
                      {
-                        //GAP Discovery Service Procedure Complete, Start to discovery the characteristics
+                        /* GAP Discovery Service Procedure Complete, Start to discovery the characteristics */
                          isGAPDiscoveringService = false;
                          GAP_Discovery_Service_Complete_CB(pr);
                      }
-                     
-                     if(isGAPDiscoveringCharacter == true)
+					 else if(isGAPDiscoveringCharacter == true)
                      {
-                        //GAP Discovery Character Procedure Complete, Start to discovery next character 
-                         
+                        /* GAP Discovery Character Procedure Complete, Start to discovery next character */
                          isGAPDiscoveringCharacter = false;
-                         
+                         GAP_Discovery_Character_Complete_CB(pr);
                      }
                 }
                 break;	                

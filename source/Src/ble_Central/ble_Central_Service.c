@@ -143,10 +143,10 @@ tBleStatus GAP_Discovery_Characteristics_CB(evt_att_read_by_type_resp *pdata)
 	uint8_t         uuid[16] = {0};
     
     //for debug
-    printf("Discovery Character:\r\n");
-    printf("conn handle:0x%04x\r\n",pdata->conn_handle);
-    printf("event_data_length:%d\r\n",pdata->event_data_length);
-    printf("handle_value_pair_length:%d\r\n",pdata->handle_value_pair_length);
+    printf("\r\nDiscovery Character:\r\n");
+    printf("    conn handle:0x%04x\r\n",pdata->conn_handle);
+    printf("    event_data_length:%d\r\n",pdata->event_data_length);
+    printf("    handle_value_pair_length:%d\r\n",pdata->handle_value_pair_length);
     printf("data:");
     for(i=0;i<pdata->handle_value_pair_length;i++)
     {
@@ -172,6 +172,7 @@ tBleStatus GAP_Discovery_Characteristics_CB(evt_att_read_by_type_resp *pdata)
 			bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.valueHandle = value_handle;
 			bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterValid = true;
 		}
+		/* 判断是否是Acc加速度值发送Character */
 		else if(memcmp(uuid,bleMasterConnectList[Location].bleCentralAccCharacter.uuid ,sizeof(uuid)) == 0)  //都是可以确认长度的数据，因此，可以这样做
 		{
 			//uuid是bleCentralAccService data characeter
@@ -258,8 +259,8 @@ void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata)
 	uint8_t i=0;
 	printf("\r\nDiscovery Services:\r\n");
 	printf("    conn_handle:0x%04x\r\n",pdata->conn_handle);
-	printf("	event_data_length:%d\r\n",pdata->event_data_length);
-	printf("	attribute_data_length:%d\r\n",pdata->attribute_data_length);
+	printf("    event_data_length:%d\r\n",pdata->event_data_length);
+	printf("    attribute_data_length:%d\r\n",pdata->attribute_data_length);
 	for(i=0;i<pdata->event_data_length;i++)
 	{
 		printf("0x%x,",pdata->attribute_data_list[i]);
@@ -305,6 +306,128 @@ void GAP_Discovery_Service_Complete_CB(evt_gatt_procedure_complete *pdata)
          pr->data[]: event data.
     */
     GAP_Discovery_Characteristics(pdata->conn_handle);
+}
+/**
+ * @brief  GAP_Discovery_Character_Complete_CB,找到当前服务中Character完成后CB
+ * @param  *pdata
+ * @retval void
+ */
+void GAP_Discovery_Character_Complete_CB(evt_gatt_procedure_complete *pdata)
+{
+	 /* evt_gatt_procedure_complete parameters:
+		 pr->conn_handle: connection handle; 
+		 pr->data_length: < Length of error_code field (always 1). 
+		 pr->error_code: Indicates whether the procedure completed with error (BLE_STATUS_FAILED) 
+						or was successful (BLE_STATUS_SUCCESS).
+	*/
+	uint8_t 			Location = 0;
+	tBleStatus 			ret;
+	
+	//for debug
+	printf("\r\nDiscovery Character Complete\r\n");
+	printf("    conn_handle:0x%04x\r\n",pdata->conn_handle);
+	printf("    error_code:%d\r\n",pdata->error_code);
+	printf("\r\n");
+	
+	/* 使能notification属性的Character */
+	GetMasterConnectListLocationFromHandle(&Location,pdata->conn_handle);
+	
+	if(pdata->conn_handle == bleMasterConnectList[Location].connHandle)
+	{
+		/* 判断Acc三轴服务是否有效*/
+		if(bleMasterConnectList[Location].bleCentralAccService.isServiceValid == true)
+		{
+			/* 判断Acc服务AccCharacter是否有效 */
+			if(bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterValid == true)
+			{
+				/* 使能AccCharacter notification */
+				ret = aci_gatt_write_charac_descriptor(
+														bleMasterConnectList[Location].connHandle,
+														bleMasterConnectList[Location].bleCentralAccCharacter.valueHandle+1,
+														0x02, //Length of the value to be written
+														(uint8_t *)0x01 //attribute value: 1 for notification
+														);
+				printf("handle:0x%04x\r\n",bleMasterConnectList[Location].bleCentralAccCharacter.valueHandle);
+				if(ret != BLE_STATUS_SUCCESS)
+				{
+					#ifdef Debug_Ble_Central_AccService
+					printf("Enable Acc Character notification Fail:0x%x\r\n",ret);
+					#endif
+				}														
+			}
+			#ifdef Debug_Ble_Central_AccService
+			else
+			{
+				printf("bleCentralAccCharacter Invalid\r\n");
+			}
+			#endif
+			
+			/* 判断Acc服务Free Fall Character是否有效 */
+			if(bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterValid == true)
+			{
+				/* 使能Acc Free Fall Character noticification */
+				ret = aci_gatt_write_charac_descriptor(
+														bleMasterConnectList[Location].connHandle,
+														bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.valueHandle+1,
+														0x02, //Length of the value to be written
+														(uint8_t *)0x01 //attribute value: 1 for notification
+														);
+				if(ret != BLE_STATUS_SUCCESS)
+				{
+					#ifdef Debug_Ble_Central_AccService
+					printf("Enable Acc Free Fall Character notification Fail:0x%x\r\n",ret);
+					#endif
+				}					
+			}
+			#ifdef Debug_Ble_Central_AccService
+			else
+			{
+				printf("bleCentralAccFreeFallCharacter Invalid\r\n");
+			}
+			#endif			
+		}
+		#ifdef Debug_Ble_Central_AccService
+		else
+		{
+			printf("bleCentralAccService Invalid\r\n");
+		}
+		#endif
+	}
+	#ifdef Debug_Ble_Central_AccService
+	else
+	{
+		printf("connHandle Invalid\r\n");
+	}
+	#endif	
+}
+/**
+ * @brief  GATT_AttributeData_Noticification_CB,Gatt收到Peripheral端发送的Noticification数据时调用
+ * @param  *pdata
+ * @retval void
+ */
+tBleStatus GATT_AttributeData_Noticification_CB(evt_gatt_attr_notification *pdata)
+{
+	/* notification event parameters:
+		evt->conn_handle: the connection handle which notified the attribute;
+		evt->event_data_length: length of attribute value + handle (2 bytes); 
+		evt->attr_handle: attribute handle;
+		evt->attr_value: pointer to attribute value (length is event_data_length – 2).   
+	*/
+	
+	tBleStatus ret = 0;
+	
+	//for debug
+	uint8_t i = 0;
+	printf("\r\nNoticification data:\r\n");
+	printf("    conn_handle:0x%04x\r\n",pdata->conn_handle);
+	printf("    attr_handle:0x%04x\r\n",pdata->attr_handle);
+	for(i=0;i<(pdata->event_data_length-2);i++)
+	{
+		printf("0x%x,",pdata->attr_value[i]);
+	}
+	printf("\r\n");
+		
+	return ret;
 }
 
 /**
