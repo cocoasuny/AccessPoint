@@ -41,6 +41,7 @@
 
 #include "stm32f4xx_hal.h"
 #include "ble_status.h"
+#include "hci_const.h"
 
 
 /* Private macros ------------------------------------------------------------*/
@@ -93,7 +94,7 @@ tBleStatus Start_Advertise(void);
 tBleStatus Ble_SetTx_Power(uint8_t level);
 
 void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle);
-void GAP_DisconnectionComplete_CB(void);
+void GAP_DisconnectionComplete_CB(evt_disconn_complete *pdata);
 void Attribute_Modified_CB(uint16_t handle, uint8_t data_length, uint8_t *att_data,uint8_t offset);
 
 

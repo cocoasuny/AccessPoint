@@ -178,12 +178,16 @@ tBleStatus GAP_Central_Make_Connection(tBDAddr addr)
  * @param  None
  * @retval None
  */
-tBleStatus GAP_Central_Make_Disconnection(uint16_t conn_handle)
+tBleStatus GAP_Central_Make_Disconnection(tBDAddr addr)
 {
 	tBleStatus  ret;
+    uint8_t Location = 0;
 	
+    /* Get the addr location of bleMasterConnectList */
+    GetMasterConnectListLocationFromMACAddr(&Location,addr);
+    
 	/* terminate gap procedure */
-	ret = aci_gap_terminate(conn_handle,HCI_OE_USER_ENDED_CONNECTION); // Disconnect the peer device
+	ret = aci_gap_terminate(bleMasterConnectList[Location].connHandle,HCI_OE_USER_ENDED_CONNECTION); // Disconnect the peer device
 	
 	#ifdef Debug_BlueNRG_Scan
 	printf("Disconnect :");
@@ -309,5 +313,24 @@ static void  Reset_Discovery_List(BLE_DEVICE_LIST_INFO_T *pScanList, uint8_t len
 	}
 }
 
-
+/**
+* @brief  Reset_bleMasterConnectList_ByHandle,清除对应Handle的连接信息
+ * @param  Handle
+ * @retval None
+ */
+void Reset_bleMasterConnectList_ByHandle(uint16_t Handle)
+{
+    uint8_t Location = 0;
+    
+    GetMasterConnectListLocationFromHandle(&Location,Handle);
+    
+    bleMasterConnectList[Location].connHandle = 0;
+    bleMasterConnectList[Location].ble_status = DEFAULT;
+    bleMasterConnectList[Location].isListValid = true;
+    memset(bleMasterConnectList[Location].bdaddr,0,BLE_MACADDR_LEN);
+    bleMasterConnectList[Location].bleCentralAccService.isServiceValid = false;
+    bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterValid = false;
+    bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterValid = false;    
+    
+}
 

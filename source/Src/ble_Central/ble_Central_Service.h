@@ -83,6 +83,7 @@ void GAP_Discovery_Service_Complete_CB(evt_gatt_procedure_complete *pdata);
 void GAP_Discovery_Character_Complete_CB(evt_gatt_procedure_complete *pdata);
 tBleStatus GATT_AttributeData_Noticification_CB(evt_gatt_attr_notification *pdata);
 tBleStatus GetMasterConnectListLocationFromHandle(uint8_t *Location,uint16_t conn_handle);
+tBleStatus GetMasterConnectListLocationFromMACAddr(uint8_t *Location,uint8_t addr[6]);
   
 #endif /* __BLE_CENTRAL_SERVICE_H_ */
 

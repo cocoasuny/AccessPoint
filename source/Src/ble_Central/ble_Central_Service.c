@@ -461,6 +461,36 @@ tBleStatus GetMasterConnectListLocationFromHandle(uint8_t *Location,uint16_t con
 }
 
 /**
+ * @brief  GetMasterConnectListLocationFromHandle,通过conn_handle查找所连接的设备地址
+ * @param  uint8_t *Location,uint16_t conn_handle
+ * @retval status
+ */
+tBleStatus GetMasterConnectListLocationFromMACAddr(uint8_t *Location,uint8_t addr[6])
+{
+    uint8_t i = 0;
+    tBleStatus ret = 0;
+    
+    for(i= 0;i<MAX_SUPPORT_CONNECT_NBR;i++)
+    {
+        if(memcmp(addr,bleMasterConnectList[i].bdaddr,BLE_MACADDR_LEN) == 0)
+        {
+            *Location = i;
+            break;
+        }
+    }
+    if(i<=MAX_SUPPORT_CONNECT_NBR)
+    {
+        ret = BLE_STATUS_SUCCESS;
+    }
+    else
+    {
+        ret = BLE_STATUS_ERROR;
+    }
+    
+    return ret;
+}
+
+/**
 * @brief  Reset_bleMasterConnectList_ALL,上电清楚所有连接信息
  * @param  None
  * @retval None
@@ -479,6 +509,7 @@ static void Reset_bleMasterConnectList_ALL(void)
 		bleMasterConnectList[i].bleCentralAccFreeFallCharacter.isCharacterValid = false;
 	}
 }
+
 
 
 

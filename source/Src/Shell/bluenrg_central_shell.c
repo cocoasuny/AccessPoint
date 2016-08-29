@@ -108,8 +108,19 @@ void Shell_BlueNRG_Central_Service(void)
 	}
 	else if (StrComp(ptRxd,"disconn"))  //断开连接设备指令
 	{
+		retval = sscanf((void*)shell_rx_buff,"%*s%*s%x,%x,%x,%x,%x,%x",(int *)&add[0],(int *)&add[1],(int *)&add[2],
+														   (int *)&add[3],(int *)&add[4],(int *)&add[5]);  
+        if(6 != retval)
+		{
+			return;   //没有接收到6个输入数据,直接退出  
+		}
+		else
+		{
+			printf("disconnmac :0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x\r\n",
+                                                add[0],add[1],add[2],add[3],add[4],add[5]);
+		}        
 		/* Disconnect device */
-		GAP_Central_Make_Disconnection(connection_handle);
+		GAP_Central_Make_Disconnection(add);
 	}
 	else if(StrComp(ptRxd,"discs"))  //发现服务指令
 	{
