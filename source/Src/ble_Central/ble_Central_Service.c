@@ -32,6 +32,7 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "ble_Central_service.h"
 
 
 /* accelerometer service and char UUID define */
@@ -79,7 +80,7 @@ tBleStatus GAP_Discovery_Service(uint16_t conn_handle)
 	
 	/* discover all primary services on the server */
 	ret = aci_gatt_disc_all_prim_services(conn_handle);
-	isGAPDiscoveringService = true;    // Discovering service
+	bleMasterGattProcedure = Blue_Gatt_Procedure_Discovery_Service;    // Discovering service status
     
 	#ifdef Debug_BlueNRG_Scan
 	printf("Discovery Service :");
@@ -106,16 +107,33 @@ tBleStatus GAP_Discovery_Characteristics(uint16_t conn_handle)
     uint8_t Location = 0;
     tBleStatus ret = BLE_STATUS_ERROR;
     
+	bleMasterGattProcedure = Blue_Gatt_Procedure_Discovery_Character;  // Discovering character status
+	
     GetMasterConnectListLocationFromHandle(&Location,conn_handle);
 
-    if(bleMasterConnectList[Location].bleCentralAccService.isServiceValid == true)
+    if(
+		(bleMasterConnectList[Location].bleCentralAccService.isServiceValid == true) &&
+		(bleMasterConnectList[Location].bleCentralAccService.isServiceCharacterFindComplete != true)
+	)   //是否完成三轴服务所有Character的查找
     {
+		/* 查找三轴服务中所有Character */
         ret = aci_gatt_disc_all_charac_of_serv(bleMasterConnectList[Location].connHandle,
                                                 bleMasterConnectList[Location].bleCentralAccService.serviceHandle,
                                                 bleMasterConnectList[Location].bleCentralAccService.endGroupHandle
                                                ); 
-        isGAPDiscoveringCharacter = true;
     }
+//	else if(
+//	
+//	)  //已完成上一个服务所有Character的查找，查找下一个服务的Character
+//	{
+//		
+//	}
+	else  //所有服务的Character已完成查找,进入Enable Noticification状态
+	{
+		bleMasterGattProcedure = Blue_Gatt_Procedure_Enable_Noticification;  // Enable Noticification status
+		
+		GAP_Discovery_AllCharacter_Complete_CB(conn_handle);  //所有Character查找完成后，使能各Character Noticification
+	}
     
     return ret;
 }
@@ -142,17 +160,18 @@ tBleStatus GAP_Discovery_Characteristics_CB(evt_att_read_by_type_resp *pdata)
 	uint8_t         properties = 0;
 	uint8_t         uuid[16] = {0};
     
-    //for debug
-    printf("\r\nDiscovery Character:\r\n");
-    printf("    conn handle:0x%04x\r\n",pdata->conn_handle);
-    printf("    event_data_length:%d\r\n",pdata->event_data_length);
-    printf("    handle_value_pair_length:%d\r\n",pdata->handle_value_pair_length);
-    printf("data:");
-    for(i=0;i<pdata->handle_value_pair_length;i++)
-    {
-        printf("0x%x,",pdata->handle_value_pair[i]);
-    }
-    printf("\r\n");
+	#ifdef Debug_Ble_Central_Service
+		printf("\r\nDiscovery Character:\r\n");
+		printf("    conn handle:0x%04x\r\n",pdata->conn_handle);
+		printf("    event_data_length:%d\r\n",pdata->event_data_length);
+		printf("    handle_value_pair_length:%d\r\n",pdata->handle_value_pair_length);
+		printf("data:");
+		for(i=0;i<pdata->handle_value_pair_length;i++)
+		{
+			printf("0x%x,",pdata->handle_value_pair[i]);
+		}
+		printf("\r\n");
+	#endif
 
 	/* 处理Character数据 */
 	attribut_handle = (uint16_t)(pdata->handle_value_pair[1]<<8 | pdata->handle_value_pair[0]);
@@ -163,6 +182,7 @@ tBleStatus GAP_Discovery_Characteristics_CB(evt_att_read_by_type_resp *pdata)
 	GetMasterConnectListLocationFromHandle(&Location,pdata->conn_handle);
 	if(pdata->conn_handle == bleMasterConnectList[Location].connHandle)  //判断属于哪个连接
 	{
+		/******************  Acc服务处理开始 ****************************************/
 		/* 判断是否是Acc Service Free Fall Character*/
 		if(memcmp(uuid,bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.uuid ,sizeof(uuid)) == 0)  //都是可以确认长度的数据，因此，可以这样做
 		{
@@ -171,6 +191,7 @@ tBleStatus GAP_Discovery_Characteristics_CB(evt_att_read_by_type_resp *pdata)
 			bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.handle = attribut_handle;
 			bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.valueHandle = value_handle;
 			bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterValid = true;
+			bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterNoticificationEnable = false;
 		}
 		/* 判断是否是Acc加速度值发送Character */
 		else if(memcmp(uuid,bleMasterConnectList[Location].bleCentralAccCharacter.uuid ,sizeof(uuid)) == 0)  //都是可以确认长度的数据，因此，可以这样做
@@ -180,7 +201,18 @@ tBleStatus GAP_Discovery_Characteristics_CB(evt_att_read_by_type_resp *pdata)
 			bleMasterConnectList[Location].bleCentralAccCharacter.handle = attribut_handle;
 			bleMasterConnectList[Location].bleCentralAccCharacter.valueHandle = value_handle;
 			bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterValid = true;
+			bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterNoticificationEnable = false;
 		}
+		
+		/* Acc服务中所有Character都有效时，说明已完成Acc服务中所有Character查找 */
+		if(
+			(bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterValid == true) &&
+			(bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterValid == true)
+		)  
+		{
+			bleMasterConnectList[Location].bleCentralAccService.isServiceCharacterFindComplete = true;
+		}
+		/************************Acc 服务处理结束 **********************************************/
 	}
     
     return ret;
@@ -205,7 +237,8 @@ tBleStatus ble_Central_Add_Acc_Service(void)
         memcpy(bleMasterConnectList[i].bleCentralAccService.uuid,uuid,sizeof(uuid));
         bleMasterConnectList[i].bleCentralAccService.endGroupHandle = 0;
         bleMasterConnectList[i].bleCentralAccService.serviceHandle = 0;
-        bleMasterConnectList[i].bleCentralAccService.isServiceValid = false; 
+        bleMasterConnectList[i].bleCentralAccService.isServiceValid = false;
+		bleMasterConnectList[i].bleCentralAccService.isServiceCharacterFindComplete = false;
     }
 	
 	/* add acc service free fall character */
@@ -216,7 +249,8 @@ tBleStatus ble_Central_Add_Acc_Service(void)
         bleMasterConnectList[i].bleCentralAccFreeFallCharacter.properties = 0;
         bleMasterConnectList[i].bleCentralAccFreeFallCharacter.handle = 0;
 		bleMasterConnectList[i].bleCentralAccFreeFallCharacter.valueHandle = 0;
-        bleMasterConnectList[i].bleCentralAccFreeFallCharacter.isCharacterValid = false; 
+        bleMasterConnectList[i].bleCentralAccFreeFallCharacter.isCharacterValid = false;
+		bleMasterConnectList[i].bleCentralAccFreeFallCharacter.isCharacterNoticificationEnable = false;
     }	
 	
 	/* add acc service data character */
@@ -228,6 +262,7 @@ tBleStatus ble_Central_Add_Acc_Service(void)
         bleMasterConnectList[i].bleCentralAccCharacter.handle = 0;
 		bleMasterConnectList[i].bleCentralAccCharacter.valueHandle = 0;
         bleMasterConnectList[i].bleCentralAccCharacter.isCharacterValid = false; 
+		bleMasterConnectList[i].bleCentralAccCharacter.isCharacterNoticificationEnable = false;
     }
 	return 	ret;
 }
@@ -256,16 +291,18 @@ void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata)
     uint8_t Location = 0;
 	
 	/* for debug */
-	uint8_t i=0;
-	printf("\r\nDiscovery Services:\r\n");
-	printf("    conn_handle:0x%04x\r\n",pdata->conn_handle);
-	printf("    event_data_length:%d\r\n",pdata->event_data_length);
-	printf("    attribute_data_length:%d\r\n",pdata->attribute_data_length);
-	for(i=0;i<pdata->event_data_length;i++)
-	{
-		printf("0x%x,",pdata->attribute_data_list[i]);
-	}
-	printf("\r\n");
+	#ifdef Debug_Ble_Central_Service
+		uint8_t i=0;
+		printf("\r\nDiscovery Services:\r\n");
+		printf("    conn_handle:0x%04x\r\n",pdata->conn_handle);
+		printf("    event_data_length:%d\r\n",pdata->event_data_length);
+		printf("    attribute_data_length:%d\r\n",pdata->attribute_data_length);
+		for(i=0;i<pdata->event_data_length;i++)
+		{
+			printf("0x%x,",pdata->attribute_data_list[i]);
+		}
+		printf("\r\n");
+    #endif			
 	
 	if(pdata->attribute_data_length > 16)  //目前只识别128bit的UUID
 	{
@@ -290,6 +327,7 @@ void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata)
 			bleMasterConnectList[Location].bleCentralAccService.endGroupHandle = (uint16_t)(pdata->attribute_data_list[3]<<8 
                                                                                            | pdata->attribute_data_list[2]);
 			bleMasterConnectList[Location].bleCentralAccService.isServiceValid = true;
+			bleMasterConnectList[Location].bleCentralAccService.isServiceCharacterFindComplete = false;
 		}
 	}
 }
@@ -312,7 +350,17 @@ void GAP_Discovery_Service_Complete_CB(evt_gatt_procedure_complete *pdata)
  * @param  *pdata
  * @retval void
  */
-void GAP_Discovery_Character_Complete_CB(evt_gatt_procedure_complete *pdata)
+void GAP_Discovery_AllCharacter_Complete_CB(uint16_t conn_handle)
+{
+	/* Enable Charcter Descriptor for noticification */
+	Enable_Character_Descriptor_ForNoticification(conn_handle);
+}
+/**
+ * @brief  Enable_Character_Descriptor_ForNoticification,使能Character Notification属性
+ * @param  conn_handle
+ * @retval void
+ */
+void Enable_Character_Descriptor_ForNoticification(uint16_t conn_handle)
 {
 	 /* evt_gatt_procedure_complete parameters:
 		 pr->conn_handle: connection handle; 
@@ -324,21 +372,25 @@ void GAP_Discovery_Character_Complete_CB(evt_gatt_procedure_complete *pdata)
 	tBleStatus 			ret;
 	
 	//for debug
-	printf("\r\nDiscovery Character Complete\r\n");
-	printf("    conn_handle:0x%04x\r\n",pdata->conn_handle);
-	printf("    error_code:%d\r\n",pdata->error_code);
-	printf("\r\n");
+	#ifdef Debug_Ble_Central_Service
+		printf("\r\nDiscovery Character Complete\r\n");
+		printf("    conn_handle:0x%04x\r\n",conn_handle);
+		printf("\r\n");
+	#endif
 	
 	/* 使能notification属性的Character */
-	GetMasterConnectListLocationFromHandle(&Location,pdata->conn_handle);
+	GetMasterConnectListLocationFromHandle(&Location,conn_handle);
 	
-	if(pdata->conn_handle == bleMasterConnectList[Location].connHandle)
+	if(conn_handle == bleMasterConnectList[Location].connHandle)
 	{
 		/* 判断Acc三轴服务是否有效*/
 		if(bleMasterConnectList[Location].bleCentralAccService.isServiceValid == true)
 		{
 			/* 判断Acc服务AccCharacter是否有效 */
-			if(bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterValid == true)
+			if(
+				(bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterValid == true) && 
+				(bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterNoticificationEnable != true)
+			)   //未使能AccCharacter Notification
 			{
 				/* 使能AccCharacter notification */
 				ret = aci_gatt_write_charac_descriptor(
@@ -347,24 +399,26 @@ void GAP_Discovery_Character_Complete_CB(evt_gatt_procedure_complete *pdata)
 														0x02, //Length of the value to be written
 														(uint8_t *)0x01 //attribute value: 1 for notification
 														);
-				printf("handle:0x%04x\r\n",bleMasterConnectList[Location].bleCentralAccCharacter.valueHandle);
 				if(ret != BLE_STATUS_SUCCESS)
 				{
 					#ifdef Debug_Ble_Central_AccService
-					printf("Enable Acc Character notification Fail:0x%x\r\n",ret);
+						printf("Enable Acc Character notification Fail:0x%x\r\n",ret);
 					#endif
-				}														
+				}
+				else
+				{
+					#ifdef Debug_Ble_Central_AccService
+						printf("Enable Acc Character notification OK\r\n");
+					#endif
+					bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterNoticificationEnable = true;
+				}
 			}
-			#ifdef Debug_Ble_Central_AccService
-			else
-			{
-				printf("bleCentralAccCharacter Invalid\r\n");
-			}
-			#endif
-			
 			/* 判断Acc服务Free Fall Character是否有效 */
-			if(bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterValid == true)
-			{
+			else if(
+					(bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterValid == true) &&
+					(bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterNoticificationEnable != true)
+			)
+			{//未使能Acc Free Fall Character nification
 				/* 使能Acc Free Fall Character noticification */
 				ret = aci_gatt_write_charac_descriptor(
 														bleMasterConnectList[Location].connHandle,
@@ -375,16 +429,25 @@ void GAP_Discovery_Character_Complete_CB(evt_gatt_procedure_complete *pdata)
 				if(ret != BLE_STATUS_SUCCESS)
 				{
 					#ifdef Debug_Ble_Central_AccService
-					printf("Enable Acc Free Fall Character notification Fail:0x%x\r\n",ret);
+						printf("Enable Acc Free Fall Character notification Fail:0x%x\r\n",ret);
 					#endif
-				}					
+				}
+				else
+				{
+					bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterNoticificationEnable = true;
+					#ifdef Debug_Ble_Central_AccService
+						printf("Enable Acc Free Fall Character notification OK\r\n");
+					#endif					
+				}
 			}
-			#ifdef Debug_Ble_Central_AccService
-			else
+//			else if()
+//			{
+//				下一个服务的Character
+//			}	
+			else  //所有服务需要Notification的Character都已Enable完成
 			{
-				printf("bleCentralAccFreeFallCharacter Invalid\r\n");
+				bleMasterGattProcedure = Blue_Gatt_Procedure_Default;  //Default status
 			}
-			#endif			
 		}
 		#ifdef Debug_Ble_Central_AccService
 		else
@@ -417,15 +480,17 @@ tBleStatus GATT_AttributeData_Noticification_CB(evt_gatt_attr_notification *pdat
 	tBleStatus ret = 0;
 	
 	//for debug
-	uint8_t i = 0;
-	printf("\r\nNoticification data:\r\n");
-	printf("    conn_handle:0x%04x\r\n",pdata->conn_handle);
-	printf("    attr_handle:0x%04x\r\n",pdata->attr_handle);
-	for(i=0;i<(pdata->event_data_length-2);i++)
-	{
-		printf("0x%x,",pdata->attr_value[i]);
-	}
-	printf("\r\n");
+	#ifdef Debug_Ble_Central_Service
+//		uint8_t i = 0;
+		printf("\r\nNoticification data:\r\n");
+//		printf("    conn_handle:0x%04x\r\n",pdata->conn_handle);
+//		printf("    attr_handle:0x%04x\r\n",pdata->attr_handle);
+//		for(i=0;i<(pdata->event_data_length-2);i++)
+//		{
+//			printf("0x%x,",pdata->attr_value[i]);
+//		}
+//		printf("\r\n");
+    #endif		
 		
 	return ret;
 }
@@ -505,8 +570,11 @@ static void Reset_bleMasterConnectList_ALL(void)
 		bleMasterConnectList[i].isListValid = true;
 		memset(bleMasterConnectList[i].bdaddr,0,BLE_MACADDR_LEN);
 		bleMasterConnectList[i].bleCentralAccService.isServiceValid = false;
+		bleMasterConnectList[i].bleCentralAccService.isServiceCharacterFindComplete = false;
 		bleMasterConnectList[i].bleCentralAccCharacter.isCharacterValid = false;
+		bleMasterConnectList[i].bleCentralAccCharacter.isCharacterNoticificationEnable = false;
 		bleMasterConnectList[i].bleCentralAccFreeFallCharacter.isCharacterValid = false;
+		bleMasterConnectList[i].bleCentralAccFreeFallCharacter.isCharacterNoticificationEnable = false;
 	}
 }
 

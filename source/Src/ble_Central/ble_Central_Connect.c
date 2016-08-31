@@ -35,14 +35,12 @@
 
 
 /* Global variables declare */
-bool isGAPDiscoveringService = false;
-bool isGAPDiscoveringCharacter = false;
 
 /* Typedefs -------------------------------------------------------------------*/
 BLE_DEVICE_LIST_INFO_T                  bleScanList[MAX_SUPPORT_SCAN_NBR];
 BLE_DIRECTCONNECT_PARAMT_T              uxBleDirectConnectParamt;
 BLE_MASTER_CONNECT_CONTEXT_INFO_T       bleMasterConnectList[MAX_SUPPORT_CONNECT_NBR];
-
+BLE_MASTER_GATT_PROCEDURE_T				bleMasterGattProcedure = Blue_Gatt_Procedure_Default;
 
 /* Private function declare ---------------------------------------------------*/
 static void  Reset_Discovery_List(BLE_DEVICE_LIST_INFO_T *pScanList, uint8_t len);
@@ -329,8 +327,10 @@ void Reset_bleMasterConnectList_ByHandle(uint16_t Handle)
     bleMasterConnectList[Location].isListValid = true;
     memset(bleMasterConnectList[Location].bdaddr,0,BLE_MACADDR_LEN);
     bleMasterConnectList[Location].bleCentralAccService.isServiceValid = false;
+	bleMasterConnectList[Location].bleCentralAccService.isServiceCharacterFindComplete = false;
     bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterValid = false;
+	bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterNoticificationEnable = false;
     bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterValid = false;    
-    
+	bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterNoticificationEnable = false;    
 }
 

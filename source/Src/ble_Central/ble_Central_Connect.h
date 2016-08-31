@@ -80,6 +80,14 @@ typedef struct
     BLE_CENTRAL_CHARACTER_INFO_T    bleCentralAccCharacter; //Central设备三轴传感器数据Character
 	BLE_CENTRAL_CHARACTER_INFO_T    bleCentralAccFreeFallCharacter;  //Central设备三轴传感器Free Fall Character
 }BLE_MASTER_CONNECT_CONTEXT_INFO_T;
+
+typedef enum
+{
+	Blue_Gatt_Procedure_Default = 0,
+	Blue_Gatt_Procedure_Discovery_Service,
+	Blue_Gatt_Procedure_Discovery_Character,
+	Blue_Gatt_Procedure_Enable_Noticification,
+}BLE_MASTER_GATT_PROCEDURE_T;
 				     
 /** 
   * @brief  Ble device GAP Central direct connection establishment parameter structures defintion
@@ -107,9 +115,8 @@ typedef struct
 
 
 /* Exported variables */
-extern bool isGAPDiscoveringService;
-extern bool isGAPDiscoveringCharacter;
-extern BLE_MASTER_CONNECT_CONTEXT_INFO_T       bleMasterConnectList[MAX_SUPPORT_CONNECT_NBR];
+extern BLE_MASTER_CONNECT_CONTEXT_INFO_T       	bleMasterConnectList[MAX_SUPPORT_CONNECT_NBR];
+extern BLE_MASTER_GATT_PROCEDURE_T				bleMasterGattProcedure;
 
 /* Exported function */
 void GAP_Scan_ADVData_CB(le_advertising_info *pdata);
