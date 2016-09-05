@@ -352,8 +352,12 @@ void GAP_Discovery_Service_Complete_CB(evt_gatt_procedure_complete *pdata)
  */
 void GAP_Discovery_AllCharacter_Complete_CB(uint16_t conn_handle)
 {
-	/* Enable Charcter Descriptor for noticification */
-	Enable_Character_Descriptor_ForNoticification(conn_handle);
+	#ifdef Debug_Ble_Central_Service
+		printf("\r\nAll Character Discovery complete\r\n");
+	#endif
+	
+//	/* Enable Charcter Descriptor for noticification */
+//	Enable_Character_Descriptor_ForNoticification(conn_handle);  //调试时屏蔽，实际使用中，发现完所有Character后，自动开始Enable
 }
 /**
  * @brief  Enable_Character_Descriptor_ForNoticification,使能Character Notification属性

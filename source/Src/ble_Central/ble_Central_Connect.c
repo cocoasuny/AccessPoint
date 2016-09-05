@@ -268,7 +268,7 @@ void GAP_Discovery_CompleteCB(void)
 	uint8_t i = 0;
 	uint8_t validDevNum = 0;
 	#ifdef Debug_BlueNRG_Scan
-		LOG("Scan Terminated\r\n");
+		printf("Scan Terminated\r\n");
 	#endif
 
 	//扫描结束，上报扫描到的设备信息
@@ -282,10 +282,10 @@ void GAP_Discovery_CompleteCB(void)
 	
 	validDevNum = i++;	
 
-	LOG("Scan Dev(%d): ID  MAC                       	  Status  RSSI\r\n",validDevNum);
+	printf("Scan Dev(%d): ID   MAC                       	     Status    RSSI\r\n",validDevNum);
 	for(i=0;i<validDevNum;i++)
 	{	
-		LOG("              %d,  0x%x 0x%x 0x%x 0x%x 0x%x 0x%x    %d      %d\r\n",
+		printf("              %d,  0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x    %d         %d\r\n",
 				i,bleScanList[i].bdaddr[0],bleScanList[i].bdaddr[1],bleScanList[i].bdaddr[2],
 				bleScanList[i].bdaddr[3],bleScanList[i].bdaddr[4],bleScanList[i].bdaddr[5],
 				bleScanList[i].ble_status,bleScanList[i].data_RSSI					

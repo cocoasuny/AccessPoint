@@ -39,7 +39,7 @@ const char BlueNRGCentral_HelpMsg[] =
 	" ble help                                                    - help.\r\n"
 	" ble start scan                                              - ble central start scan\r\n"
 	" ble stop scan                                               - ble central stop scan\r\n"
-	" ble connmac <add1>,<add2>,<add3>,<add4>,<add5>,<add6>       -\r\n"
+	" ble connmac <add1><add2><add3><add4><add5><add6>            - mac addr(SN)\r\n"
 	" ble disconn                                                 - ble central disconnect device\r\n"
 	" ble discs                                                   - ble central discovery service\r\n"
 	"\r\n";
@@ -92,7 +92,7 @@ void Shell_BlueNRG_Central_Service(void)
     }
 	else if(StrComp(ptRxd,"connmac "))   //连接设备指令
 	{
-		retval = sscanf((void*)shell_rx_buff,"%*s%*s%x,%x,%x,%x,%x,%x",(int *)&add[0],(int *)&add[1],(int *)&add[2],
+		retval = sscanf((void*)shell_rx_buff,"%*s%*s%02x%02x%02x%02x%02x%02x",(int *)&add[0],(int *)&add[1],(int *)&add[2],
 														   (int *)&add[3],(int *)&add[4],(int *)&add[5]);  
         if(6 != retval)
 		{
@@ -126,6 +126,11 @@ void Shell_BlueNRG_Central_Service(void)
 	{
 		/* Discovery services */
 		GAP_Discovery_Service(connection_handle);
+	}
+	else if(StrComp(ptRxd,"notice"))  //使能Notification
+	{
+		/* Enable Character Descriptor Configuration for Notification */
+		Enable_Character_Descriptor_ForNoticification(connection_handle);
 	}
     else if(StrComp(ptRxd,"help\r\n"))      //
     {
