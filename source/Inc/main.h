@@ -63,7 +63,6 @@
 
 
 
-
 extern volatile AxesRaw_t  g_Acc;         //加速度传感器数据
 extern volatile AxesRaw_t  g_Gyro;        //陀螺仪传感器数据
 extern volatile AxesRaw_t  g_Mag;         //地磁传感器数据

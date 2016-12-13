@@ -10,6 +10,7 @@
 
 
 #include "shell.h"          //Shell
+#include "StoreManageFatfs.h"
 
 /*---------------------* 
 *     Shell版本判断
@@ -38,7 +39,8 @@ const char Fatfs_HelpMsg[] =
 	"[Fatfs contorls]\r\n"
 	" fil help\t\t              -  help.\r\n"
 	" fil cap\t\t               -  the capacity of SD Card.\r\n"
-	" fil creat\t\t             -  creat a file.\r\n"
+	" fil creatOSA\t\t          -  creat a file for OSA.\r\n"
+    " fil creatCustom\t\t       -  creat a file for custom.\r\n"
     " fil open <Name>\t\t       -  open a file by name.\r\n"
     " fil close\t\t             -  close the file.\r\n"
     " fil delete <Name>\t\t     -  delete a file by name.\r\n"
@@ -47,6 +49,8 @@ const char Fatfs_HelpMsg[] =
     " fil size\t\t              -  get size of the open file.\r\n"
     " fil wr <data>\t\t         -  write the datas to the file.\r\n"
 	" fil dir\t\t               -  display all files in current directory \r\n"
+    " fil current wr file\t\t   -  find thr current write file\r\n"
+    " fil current rd file\t\t   -  find thr current read file\r\n"
 	"\r\n";
 	
 /****************************************************************************** 
@@ -68,14 +72,15 @@ void Shell_Fatfs_Service(void)
     RTC_DateTypeDef date_s;
     RTC_TimeTypeDef rtc_time;
 	SD_CardInfo  CardInfo;
-	char fileName[20] = "a.txt";
     char openfileName[20] = "0";
-    char wrData[8] = "0";
+    char wrData[256] = "0";
     char rtext[8] = "0";
 	uint32_t bw = 0;
     uint32_t br = 0;
 	char buff[256] = {0};
     FRESULT ret = FR_NO_FILE;
+    uint32_t date=0;  
+    FILE_INFO_T file_test;    
 
     //指令初级过滤  
     //--------------------------------------------------------------------------  
@@ -102,34 +107,43 @@ void Shell_Fatfs_Service(void)
 		printf("Card Capacity:%d MB\r\n",(uint32_t)(CardInfo.CardCapacity>>20));	//
 		printf("Card BlockSize:%d\r\n\r\n",CardInfo.CardBlockSize);			        //
     }
-    else if(StrComp(ptRxd,"creat\r\n"))    //创建文件
+    else if(StrComp(ptRxd,"creatOSA\r\n"))   //创建OSA文件
     {
 		/* 以时间信息为文件名称 */
 		Calendar_Get(&date_s,&rtc_time);
-		sprintf(fileName,"%d%d%d%d.txt",20,date_s.Year,date_s.Month,date_s.Date);
 
-		/*##-3- Create and Open a new text file object with write access #####*/
-        ret = f_open(&MyFile, fileName, FA_CREATE_ALWAYS | FA_WRITE);
-		if(ret != FR_OK)
-		{
-			/* 'STM32.TXT' file Open for write Error */
-			#ifdef Debug_FatFs_Driver
-                printf("f_open Err in fatfs_shell:%d\r\n",ret);
-			#endif
-		}
-		else
-		{
-			#ifdef Debug_FatFs_Driver
-                printf("Creat file success:%d\r\n",ret);
-			#endif
-			f_close(&MyFile);
-		}
+        date = GetTick((date_s.Year+2000),date_s.Month,date_s.Date,rtc_time.Hours,rtc_time.Minutes,rtc_time.Seconds);
+        
+        File_Creat(date);
+    }
+    else if(StrComp(ptRxd,"creatCustom"))   //创建个性化方案文件
+    {
+        /* 以时间信息为文件名称 */
+		Calendar_Get(&date_s,&rtc_time);
+        
+        date = (uint32_t)((date_s.Year << 16) | (date_s.Month << 8) | (date_s.WeekDay));
+        
+        File_Creat(date);
     }
     else if(StrComp(ptRxd,"dir"))      //显示当前路径下所有文件
     {
         strcpy(buff, "/");
         scan_files(buff);
     }
+    else if(StrComp(ptRxd,"current wr file"))  // 查找当前写文件
+    {
+        memset(file_test.fileName,0,MAX_FILE_NAME_LEN);
+        file_test.size = 0;
+        findCurrentWRFile(&file_test);
+        printf("current wr file:%s,%d\r\n",file_test.fileName,file_test.size);
+    }
+    else if(StrComp(ptRxd,"current rd file"))  // 查找当前写文件
+    {
+        memset(file_test.fileName,0,MAX_FILE_NAME_LEN);
+        file_test.size = 0;        
+        findCurrentRDFile(&file_test);
+        printf("current rd file:%s,%d\r\n",file_test.fileName,file_test.size);
+    }    
     else if(StrComp(ptRxd,"open"))      //根据文件名称打开文件
     {
 		sscanf((void*)shell_rx_buff,"%*s%*s %s",openfileName);  
@@ -240,21 +254,31 @@ void Shell_Fatfs_Service(void)
         wrData[6] = 0x44;
         wrData[7] = 0x45;
         
-        /*##-4- Write data to the text file ################################*/
-        ret = f_write(&MyFile, wrData, sizeof(wrData), (void *)&bw);
-
-        if((bw == 0) || (ret != FR_OK))
+        uint32_t j = 0;
+        FSIZE_t         filesize = 0;
+        
+        sscanf((void*)shell_rx_buff,"%*s%*s %s",openfileName); 
+        
+        for(j=0;j<256;j++)
         {
-            #ifdef Debug_FatFs_Driver
-                /* file Write or EOF Error */
-                printf("f_write data Err:%d\r\n",ret);
-            #endif
+            wrData[j] = j;
         }
-        else
+        for(j=0;j<1000;j++)
         {
-            #ifdef Debug_FatFs_Driver
-                printf("f_write data OK\r\n");
-            #endif
+            Calendar_Get(&date_s,&rtc_time);
+            wrData[0] = rtc_time.Hours;
+            wrData[1] = rtc_time.Minutes;
+            wrData[2] = rtc_time.Seconds;
+            wrData[3] = 0x41;
+            wrData[4] = 0x42;
+            wrData[5] = 0x43;
+            wrData[6] = 0x44;
+            wrData[7] = 0x45;
+            wrData[8] = j;
+            
+            printf("wr cnt:%d\r\n",j);
+            wtite_data_to_currentFile(wrData,256);
+            HAL_Delay(200);
         }
     }
     else if(StrComp(ptRxd,"rd\r\n")) 

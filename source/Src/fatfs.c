@@ -33,6 +33,7 @@
 
 #include "fatfs.h"
 #include "main.h"
+#include "StoreManageFatfs.h"
 
 
 
@@ -57,37 +58,39 @@ uint8_t MX_FATFS_Init(void)
         retSD = true;
     }
     
-    /*##-1- Register the file system object to the FatFs module ##############*/
-    if(f_mount(&SDFatFs, (TCHAR const*)SDPath, 0) != FR_OK)
-    {
-        #ifdef Debug_FatFs_Driver
-            /* FatFs Initialization Error */
-            printf("f_mount Err in fatfs_shell\r\n"); 
-        #endif
-        retSD = false;
-        /*##-2- Create a FAT file system (format) on the logical drive #########*/
-        /* WARNING: Formatting the uSD card will delete all content on the device */
-        if(f_mkfs((TCHAR const*)SDPath, 0, 0) != FR_OK)
-        {
-            /* FatFs Format Error */
-            #ifdef Debug_FatFs_Driver
-                printf("FatFs Format Err in fatfs_shell\r\n");
-            #endif
-            retSD = false;
-        }
-        #ifdef Debug_FatFs_Driver
-        else
-        {
-            printf("FatFs Format OK\r\n");
-        }
-        #endif
-    }
-    #ifdef Debug_FatFs_Driver
-    else
-    {
-        printf("Register FS OK\r\n");
-    }
-    #endif
+    store_manage_init();
+//    
+//    /*##-1- Register the file system object to the FatFs module ##############*/
+//    if(f_mount(&SDFatFs, (TCHAR const*)SDPath, 0) != FR_OK)
+//    {
+//        #ifdef Debug_FatFs_Driver
+//            /* FatFs Initialization Error */
+//            printf("f_mount Err in fatfs_shell\r\n"); 
+//        #endif
+//        retSD = false;
+//        /*##-2- Create a FAT file system (format) on the logical drive #########*/
+//        /* WARNING: Formatting the uSD card will delete all content on the device */
+//        if(f_mkfs((TCHAR const*)SDPath, 0, 0) != FR_OK)
+//        {
+//            /* FatFs Format Error */
+//            #ifdef Debug_FatFs_Driver
+//                printf("FatFs Format Err in fatfs_shell\r\n");
+//            #endif
+//            retSD = false;
+//        }
+//        #ifdef Debug_FatFs_Driver
+//        else
+//        {
+//            printf("FatFs Format OK\r\n");
+//        }
+//        #endif
+//    }
+//    #ifdef Debug_FatFs_Driver
+//    else
+//    {
+//        printf("Register FS OK\r\n");
+//    }
+//    #endif
     
     return retSD;
 }
