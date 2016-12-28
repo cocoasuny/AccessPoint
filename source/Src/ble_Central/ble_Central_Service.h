@@ -43,6 +43,10 @@
 #include "stm32f4xx_hal.h"
 
 
+/* ble central service debug switch */
+#define Debug_Ble_Central_Service
+
+
 /** 
   * @brief  Ble Central services structures definition  
   */
@@ -51,7 +55,8 @@ typedef struct
 	uint8_t 		uuid[16];
 	uint16_t		serviceHandle;
 	uint16_t        endGroupHandle;
-    bool            isServiceValid;	
+    bool            isServiceValid;
+	bool            isServiceCharacterFindComplete;
 }BLE_CENTRAL_SERVICE_INFO_T;	
 
 /** 
@@ -64,6 +69,7 @@ typedef struct
     uint16_t        handle;
     uint16_t        valueHandle;
     bool            isCharacterValid;
+	bool            isCharacterNoticificationEnable;
 }BLE_CENTRAL_CHARACTER_INFO_T;
     
   
@@ -80,7 +86,8 @@ tBleStatus GAP_Discovery_Characteristics(uint16_t conn_handle);
 tBleStatus GAP_Discovery_Characteristics_CB(evt_att_read_by_type_resp *pdata);
 void GAP_Discovery_Service_CB(evt_att_read_by_group_resp *pdata);
 void GAP_Discovery_Service_Complete_CB(evt_gatt_procedure_complete *pdata);
-void GAP_Discovery_Character_Complete_CB(evt_gatt_procedure_complete *pdata);
+void GAP_Discovery_AllCharacter_Complete_CB(uint16_t conn_handle);
+void Enable_Character_Descriptor_ForNoticification(uint16_t conn_handle);
 tBleStatus GATT_AttributeData_Noticification_CB(evt_gatt_attr_notification *pdata);
 tBleStatus GetMasterConnectListLocationFromHandle(uint8_t *Location,uint16_t conn_handle);
 tBleStatus GetMasterConnectListLocationFromMACAddr(uint8_t *Location,uint8_t addr[6]);

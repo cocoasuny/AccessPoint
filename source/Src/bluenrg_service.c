@@ -595,18 +595,29 @@ void HCI_Event_CB(void *pckt)
 										or was successful (BLE_STATUS_SUCCESS).
                     */
 					
-                     if(isGAPDiscoveringService == true)
-                     {
-                        /* GAP Discovery Service Procedure Complete, Start to discovery the characteristics */
-                         isGAPDiscoveringService = false;
-                         GAP_Discovery_Service_Complete_CB(pr);
-                     }
-					 else if(isGAPDiscoveringCharacter == true)
-                     {
-                        /* GAP Discovery Character Procedure Complete, Start to discovery next character */
-                         isGAPDiscoveringCharacter = false;
-                         GAP_Discovery_Character_Complete_CB(pr);
-                     }
+					/* 根据bleMasterGattProcedure不同的状态，处理不同的EVT_BLUE_GATT_PROCEDURE_COMPLETE */
+					switch(bleMasterGattProcedure)
+					{
+						case Blue_Gatt_Procedure_Discovery_Service:		//发现服务流程结束
+						{
+							/* GAP Discovery Service Procedure Complete, Start to discovery the characteristics */
+							 GAP_Discovery_Service_Complete_CB(pr);							
+						}
+						break;
+						case Blue_Gatt_Procedure_Discovery_Character:  //发现一个服务的Character流程结束,查找下一个服务的Character
+						{
+							/* GAP Discovery Character Procedure Complete, Start to discovery next character */
+							GAP_Discovery_Characteristics(pr->conn_handle);
+						}
+						break;
+						case Blue_Gatt_Procedure_Enable_Noticification:  //使能Character noticification属性完成，使能下一个Character
+						{
+							/* Enable Character Noticification Complete,start to enable next character */
+							Enable_Character_Descriptor_ForNoticification(pr->conn_handle);
+						}
+						break;
+						default : break;
+					}
                 }
                 break;	                
                 default:break;

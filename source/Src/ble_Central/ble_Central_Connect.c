@@ -35,14 +35,12 @@
 
 
 /* Global variables declare */
-bool isGAPDiscoveringService = false;
-bool isGAPDiscoveringCharacter = false;
 
 /* Typedefs -------------------------------------------------------------------*/
 BLE_DEVICE_LIST_INFO_T                  bleScanList[MAX_SUPPORT_SCAN_NBR];
 BLE_DIRECTCONNECT_PARAMT_T              uxBleDirectConnectParamt;
 BLE_MASTER_CONNECT_CONTEXT_INFO_T       bleMasterConnectList[MAX_SUPPORT_CONNECT_NBR];
-
+BLE_MASTER_GATT_PROCEDURE_T				bleMasterGattProcedure = Blue_Gatt_Procedure_Default;
 
 /* Private function declare ---------------------------------------------------*/
 static void  Reset_Discovery_List(BLE_DEVICE_LIST_INFO_T *pScanList, uint8_t len);
@@ -270,7 +268,7 @@ void GAP_Discovery_CompleteCB(void)
 	uint8_t i = 0;
 	uint8_t validDevNum = 0;
 	#ifdef Debug_BlueNRG_Scan
-		LOG("Scan Terminated\r\n");
+		printf("Scan Terminated\r\n");
 	#endif
 
 	//扫描结束，上报扫描到的设备信息
@@ -284,10 +282,10 @@ void GAP_Discovery_CompleteCB(void)
 	
 	validDevNum = i++;	
 
-	LOG("Scan Dev(%d): ID  MAC                       	  Status  RSSI\r\n",validDevNum);
+	printf("Scan Dev(%d): ID   MAC                       	     Status    RSSI\r\n",validDevNum);
 	for(i=0;i<validDevNum;i++)
 	{	
-		LOG("              %d,  0x%x 0x%x 0x%x 0x%x 0x%x 0x%x    %d      %d\r\n",
+		printf("              %d,  0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x    %d         %d\r\n",
 				i,bleScanList[i].bdaddr[0],bleScanList[i].bdaddr[1],bleScanList[i].bdaddr[2],
 				bleScanList[i].bdaddr[3],bleScanList[i].bdaddr[4],bleScanList[i].bdaddr[5],
 				bleScanList[i].ble_status,bleScanList[i].data_RSSI					
@@ -329,8 +327,10 @@ void Reset_bleMasterConnectList_ByHandle(uint16_t Handle)
     bleMasterConnectList[Location].isListValid = true;
     memset(bleMasterConnectList[Location].bdaddr,0,BLE_MACADDR_LEN);
     bleMasterConnectList[Location].bleCentralAccService.isServiceValid = false;
+	bleMasterConnectList[Location].bleCentralAccService.isServiceCharacterFindComplete = false;
     bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterValid = false;
+	bleMasterConnectList[Location].bleCentralAccCharacter.isCharacterNoticificationEnable = false;
     bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterValid = false;    
-    
+	bleMasterConnectList[Location].bleCentralAccFreeFallCharacter.isCharacterNoticificationEnable = false;    
 }
 
